@@ -21,7 +21,9 @@
                 <li><a href="@Url.RouteUrl("ContactUs")">@T("ContactUs")</a></li>
             </ul>
         </div>
-        <div class="footer-block customer-service">
+        
+
+        @*<div class="footer-block customer-service">
             <div class="title">
                 <strong>@T("Footer.CustomerService")</strong>
             </div>
@@ -56,7 +58,9 @@
                     <li><a href="@Url.RouteUrl("Topic", new { SeName = topic.SeName })">@topic.Name</a></li>
                 }
             </ul>
-        </div>
+        </div>*@
+
+        
         <div class="footer-block my-account">
             <div class="title">
                 <strong>@T("Footer.MyAccount")</strong>
@@ -95,7 +99,11 @@
     </div>
     <div class="footer-lower">
         <div class="footer-info">
-            <span class="footer-disclaimer">@T("Content.CopyrightNotice", DateTime.Now.Year, Model.StoreName)</span>
+            
+            <span class="footer-disclaimer">@T("Content.CopyrightNotice", DateTime.Now.Year, "Moonhand.dk")</span>
+            @*<span class="footer-disclaimer">@T("Content.CopyrightNotice", DateTime.Now.Year, Model.StoreName)</span>*@
+
+
             @if (Model.DisplayTaxShippingInfoFooter)
             {
                 var inclTax = EngineContext.Current.Resolve<IWorkContext>().TaxDisplayType == TaxDisplayType.IncludingTax;
