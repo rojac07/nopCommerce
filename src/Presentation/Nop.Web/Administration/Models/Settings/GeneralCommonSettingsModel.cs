@@ -82,6 +82,10 @@ namespace Nop.Admin.Models.Settings
             public string GooglePlusLink { get; set; }
             public bool GooglePlusLink_OverrideForStore { get; set; }
 
+            [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.InstagramLink")]
+            public string InstagramLink { get; set; }
+            public bool InstagramLink_OverrideForStore { get; set; }
+
             [NopResourceDisplayName("Admin.Configuration.Settings.GeneralCommon.SubjectFieldOnContactUsForm")]
             public bool SubjectFieldOnContactUsForm { get; set; }
             public bool SubjectFieldOnContactUsForm_OverrideForStore { get; set; }

@@ -5,6 +5,10 @@
 	{
 		<li class="facebook"><a href="@Model.FacebookLink" target="_blank">@T("Footer.FollowUs.Facebook")</a></li>
 	}
+    @if (!string.IsNullOrEmpty(Model.InstagramLink))
+    {
+        <li class="instagram"><a href="@Model.InstagramLink" target="_blank">@T("Footer.FollowUs.Instagram")</a></li>
+    }
 	@if (!string.IsNullOrEmpty(Model.TwitterLink))
 	{
 		<li class="twitter"><a href="@Model.TwitterLink" target="_blank">@T("Footer.FollowUs.Twitter")</a></li>
@@ -21,4 +25,5 @@
 	{
 		<li class="google-plus"><a href="@Model.GooglePlusLink" target="_blank">@T("Footer.FollowUs.GooglePlus")</a></li>
 	}
+   
 </ul>

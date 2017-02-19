@@ -230,15 +230,15 @@ namespace Nop.Services.Installation
             {
                 new Store
                 {
-                    Name = "Your store name",
+                    Name = "Moonhand.dk",
                     Url = storeUrl,
                     SslEnabled = false,
                     Hosts = "yourstore.com,www.yourstore.com",
                     DisplayOrder = 1,
                     //should we set some default company info?
-                    CompanyName = "Your company name",
-                    CompanyAddress = "your company country, state, zip, street, etc",
-                    CompanyPhoneNumber = "(123) 456-78901",
+                    CompanyName = "Moonhand.dk",
+                    CompanyAddress = "Denmark, Ishoj, 2635",
+                    CompanyPhoneNumber = "",
                     CompanyVat = null,
                 },
             };
@@ -6148,10 +6148,11 @@ namespace Nop.Services.Installation
                 DisplayMiniProfilerInPublicStore = false,
                 DisplayMiniProfilerForAdminOnly = false,
                 DisplayEuCookieLawWarning = false,
-                FacebookLink = "http://www.facebook.com/nopCommerce",
-                TwitterLink = "https://twitter.com/nopCommerce",
-                YoutubeLink = "http://www.youtube.com/user/nopCommerce",
-                GooglePlusLink = "https://plus.google.com/+nopcommerce",
+                FacebookLink = "https://www.facebook.com/Moonhand-161412013915447/",
+                TwitterLink = "",
+                YoutubeLink = "",
+                GooglePlusLink = "",
+                InstagramLink = "https://www.instagram.com/_moonhand_/",
                 HidePoweredByNopCommerce = false
             });
 

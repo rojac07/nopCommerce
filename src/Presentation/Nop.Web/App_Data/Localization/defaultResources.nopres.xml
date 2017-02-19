@@ -3679,7 +3679,7 @@
     <Value>Rental</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Security">
-     <Value>Access control list</Value>
+    <Value>Access control list</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Catalog.Products.Shipping">
     <Value>Shipping</Value>
@@ -6351,11 +6351,18 @@
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.GenerateProductMetaDescription.Hint">
     <Value>When enabled, product META descriptions will be automatically generated (if not specified on the product details page) based on product short description.</Value>
   </LocaleResource>
+
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.GooglePlusLink">
     <Value>Google+ page URL</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.GooglePlusLink.Hint">
     <Value>Specify your Google+ page URL. Leave empty if you have no such page.</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.InstagramLink">
+    <Value>Instagram page URL</Value>
+  </LocaleResource>
+  <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.InstagramLink.Hint">
+    <Value>Specify your Instagram page URL. Leave empty if you have no such page.</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.GeneralCommon.HoneypotEnabled">
     <Value>Enable honeypot</Value>
@@ -7063,7 +7070,7 @@
     <Value>Shipping</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.ProductEditor.BlockTitle.Security">
-     <Value>Access control list</Value>
+    <Value>Access control list</Value>
   </LocaleResource>
   <LocaleResource Name="Admin.Configuration.Settings.ProductEditor.BlockTitle.Inventory">
     <Value>Inventory</Value>

@@ -1,4 +1,5 @@
-﻿using Nop.Core.Configuration;
+﻿
+using Nop.Core.Configuration;
 
 namespace Nop.Core.Domain
 {
@@ -64,5 +65,7 @@ namespace Nop.Core.Domain
         /// Gets or sets a value of Google+ page URL of the site
         /// </summary>
         public string GooglePlusLink { get; set; }
+
+        public string InstagramLink { get; set; }
     }
 }

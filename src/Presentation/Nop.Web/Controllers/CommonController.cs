@@ -252,6 +252,8 @@ namespace Nop.Web.Controllers
         public virtual ActionResult Social()
         {
             var model = _commonModelFactory.PrepareSocialModel();
+                InstagramLink = _storeInformationSettings.InstagramLink,
+                
             return PartialView(model);
         }
 
