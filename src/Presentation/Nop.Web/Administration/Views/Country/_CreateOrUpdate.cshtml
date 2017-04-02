@@ -64,7 +64,7 @@
                             @Html.NopLabelFor(model => model.Name)
                         </div>
                         <div class="col-md-9">
-                            @Html.NopEditorFor(model => model.Name, required: true)
+                            @Html.NopEditorFor(model => model.Name)
                             @Html.ValidationMessageFor(model => model.Name)
                         </div>
                     </div>
@@ -93,7 +93,7 @@
                         @Html.NopLabelFor(model => model.TwoLetterIsoCode)
                     </div>
                     <div class="col-md-9">
-                        @Html.NopEditorFor(model => model.TwoLetterIsoCode, required: true)
+                        @Html.NopEditorFor(model => model.TwoLetterIsoCode)
                         @Html.ValidationMessageFor(model => model.TwoLetterIsoCode)
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                         @Html.NopLabelFor(model => model.ThreeLetterIsoCode)
                     </div>
                     <div class="col-md-9">
-                        @Html.NopEditorFor(model => model.ThreeLetterIsoCode, required: true)
+                        @Html.NopEditorFor(model => model.ThreeLetterIsoCode)
                         @Html.ValidationMessageFor(model => model.ThreeLetterIsoCode)
                     </div>
                 </div>
@@ -230,8 +230,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -260,15 +259,11 @@
                                 }, {
                                     field: "Id",
                                     title: "@T("Admin.Common.Edit")",
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
                                     width: 100,
-                                    template: "<button onclick=\"javascript:OpenWindow('@Url.Content("~/Admin/Country/StateEditPopup/")#=Id#?btnId=btnRefresh&formId=country-form', 800, 450, true); return false;\" class='btn btn-default'><i class=\"fa fa-pencil\"></i>@T("Admin.Common.Edit")</button>"
+                                    template: "<input type='submit' value='@T("Admin.Common.Edit")' onclick=\"javascript:OpenWindow('@Url.Content("~/Admin/Country/StateEditPopup/")#=Id#?btnId=btnRefresh&formId=country-form', 800, 450, true); return false;\" class='btn btn-default' />"
                                 }, {
                                     command: { name: "destroy", text: "@T("Admin.Common.Delete")" },
                                     title: "@T("Admin.Common.Delete")",
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
                                     width: 100
                                 }]
                             });

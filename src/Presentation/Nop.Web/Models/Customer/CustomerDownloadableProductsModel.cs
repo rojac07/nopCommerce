@@ -19,7 +19,6 @@ namespace Nop.Web.Models.Customer
             public Guid OrderItemGuid { get; set; }
 
             public int OrderId { get; set; }
-            public string CustomOrderNumber { get; set; }
 
             public int ProductId { get; set; }
             public string ProductName { get; set; }

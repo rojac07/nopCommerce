@@ -22,6 +22,7 @@ namespace Nop.Core.Domain.Customers
         public Customer()
         {
             this.CustomerGuid = Guid.NewGuid();
+            this.PasswordFormat = PasswordFormat.Clear;
         }
 
         /// <summary>
@@ -38,9 +39,26 @@ namespace Nop.Core.Domain.Customers
         /// </summary>
         public string Email { get; set; }
         /// <summary>
-        /// Gets or sets the email that should be re-validated. Used in scenarios when a customer is already registered and wants to change an email address.
+        /// Gets or sets the password
         /// </summary>
-        public string EmailToRevalidate { get; set; }
+        public string Password { get; set; }
+
+        /// <summary>
+        /// Gets or sets the password format
+        /// </summary>
+        public int PasswordFormatId { get; set; }
+        /// <summary>
+        /// Gets or sets the password format
+        /// </summary>
+        public PasswordFormat PasswordFormat
+        {
+            get { return (PasswordFormat)PasswordFormatId; }
+            set { this.PasswordFormatId = (int)value; }
+        }
+        /// <summary>
+        /// Gets or sets the password salt
+        /// </summary>
+        public string PasswordSalt { get; set; }
 
         /// <summary>
         /// Gets or sets the admin comment
@@ -71,20 +89,6 @@ namespace Nop.Core.Domain.Customers
         /// </remarks>
         /// </summary>
         public bool HasShoppingCartItems { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the customer is required to re-login
-        /// </summary>
-        public bool RequireReLogin { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating number of failed login attempts (wrong password)
-        /// </summary>
-        public int FailedLoginAttempts { get; set; }
-        /// <summary>
-        /// Gets or sets the date and time until which a customer cannot login (locked out)
-        /// </summary>
-        public DateTime? CannotLoginUntilDateUtc { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the customer is active
@@ -125,11 +129,6 @@ namespace Nop.Core.Domain.Customers
         /// Gets or sets the date and time of last activity
         /// </summary>
         public DateTime LastActivityDateUtc { get; set; }
-
-        /// <summary>
-        ///  Gets or sets the store identifier in which customer registered
-        /// </summary>
-        public int RegisteredInStoreId { get; set; }
         
         #region Navigation properties
 

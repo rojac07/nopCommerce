@@ -49,11 +49,6 @@ namespace Nop.Core.Domain.Orders
         public string CustomerComments { get; set; }
 
         /// <summary>
-        /// Gets or sets identifier of the file (Download) uploaded by the customer
-        /// </summary>
-        public int UploadedFileId { get; set; }
-
-        /// <summary>
         /// Gets or sets the staff notes
         /// </summary>
         public string StaffNotes { get; set; }

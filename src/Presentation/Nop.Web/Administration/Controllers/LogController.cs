@@ -34,12 +34,12 @@ namespace Nop.Admin.Controllers
             this._permissionService = permissionService;
         }
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
                 return AccessDeniedView();
@@ -52,10 +52,11 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult LogList(DataSourceRequest command, LogListModel model)
+        public ActionResult LogList(DataSourceRequest command, LogListModel model)
         {
+
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             DateTime? createdOnFromValue = (model.CreatedOnFrom == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnFrom.Value, _dateTimeHelper.CurrentTimeZone);
@@ -75,7 +76,12 @@ namespace Nop.Admin.Controllers
                     Id = x.Id,
                     LogLevel = x.LogLevel.GetLocalizedEnum(_localizationService, _workContext),
                     ShortMessage = x.ShortMessage,
-                    //little performance optimization: ensure that "FullMessage" is not returned
+                    //little hack here:
+                    //ensure that FullMessage is not returned
+                    //otherwise, we can get the following error if log records have too long FullMessage:
+                    //"Error during serialization or deserialization using the JSON JavaScriptSerializer. The length of the string exceeds the value set on the maxJsonLength property. "
+                    //also it improves performance
+                    //FullMessage = x.FullMessage,
                     FullMessage = "",
                     IpAddress = x.IpAddress,
                     CustomerId = x.CustomerId,
@@ -92,7 +98,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("clearall")]
-        public virtual ActionResult ClearAll()
+        public ActionResult ClearAll()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
                 return AccessDeniedView();
@@ -103,7 +109,7 @@ namespace Nop.Admin.Controllers
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult View(int id)
+        public ActionResult View(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
                 return AccessDeniedView();
@@ -131,7 +137,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
                 return AccessDeniedView();
@@ -149,7 +155,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult DeleteSelected(ICollection<int> selectedIds)
+        public ActionResult DeleteSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSystemLog))
                 return AccessDeniedView();

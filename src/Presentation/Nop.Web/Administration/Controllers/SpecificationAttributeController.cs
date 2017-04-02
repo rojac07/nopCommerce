@@ -77,12 +77,12 @@ namespace Nop.Admin.Controllers
         #region Specification attributes
 
         //list
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -91,10 +91,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult List(DataSourceRequest command)
+        public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var specificationAttributes = _specificationAttributeService
                 .GetSpecificationAttributes(command.Page - 1, command.PageSize);
@@ -108,7 +108,7 @@ namespace Nop.Admin.Controllers
         }
         
         //create
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -120,7 +120,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Create(SpecificationAttributeModel model, bool continueEditing)
+        public ActionResult Create(SpecificationAttributeModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -151,7 +151,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -172,7 +172,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Edit(SpecificationAttributeModel model, bool continueEditing)
+        public ActionResult Edit(SpecificationAttributeModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -210,7 +210,7 @@ namespace Nop.Admin.Controllers
 
         //delete
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -235,10 +235,10 @@ namespace Nop.Admin.Controllers
 
         //list
         [HttpPost]
-        public virtual ActionResult OptionList(int specificationAttributeId, DataSourceRequest command)
+        public ActionResult OptionList(int specificationAttributeId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var options = _specificationAttributeService.GetSpecificationAttributeOptionsBySpecificationAttribute(specificationAttributeId);
             var gridModel = new DataSourceResult
@@ -263,7 +263,7 @@ namespace Nop.Admin.Controllers
         }
 
         //create
-        public virtual ActionResult OptionCreatePopup(int specificationAttributeId)
+        public ActionResult OptionCreatePopup(int specificationAttributeId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -276,7 +276,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult OptionCreatePopup(string btnId, string formId, SpecificationAttributeOptionModel model)
+        public ActionResult OptionCreatePopup(string btnId, string formId, SpecificationAttributeOptionModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -307,7 +307,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult OptionEditPopup(int id)
+        public ActionResult OptionEditPopup(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -330,7 +330,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult OptionEditPopup(string btnId, string formId, SpecificationAttributeOptionModel model)
+        public ActionResult OptionEditPopup(string btnId, string formId, SpecificationAttributeOptionModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -363,7 +363,7 @@ namespace Nop.Admin.Controllers
 
         //delete
         [HttpPost]
-        public virtual ActionResult OptionDelete(int id, int specificationAttributeId)
+        public ActionResult OptionDelete(int id, int specificationAttributeId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageAttributes))
                 return AccessDeniedView();
@@ -380,7 +380,7 @@ namespace Nop.Admin.Controllers
 
         //ajax
         [AcceptVerbs(HttpVerbs.Get)]
-        public virtual ActionResult GetOptionsByAttributeId(string attributeId)
+        public ActionResult GetOptionsByAttributeId(string attributeId)
         {
             //do not make any permission validation here 
             //because this method could be used on some other pages (such as product editing)

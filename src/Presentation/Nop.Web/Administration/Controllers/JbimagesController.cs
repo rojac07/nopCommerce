@@ -16,10 +16,13 @@ namespace Nop.Admin.Controllers
     public partial class JbimagesController : BaseAdminController
     {
         private readonly IPermissionService _permissionService;
+        private readonly IWebHelper _webHelper;
 
-        public JbimagesController(IPermissionService permissionService)
+        public JbimagesController(IPermissionService permissionService,
+            IWebHelper webHelper)
         {
             this._permissionService = permissionService;
+            this._webHelper = webHelper;
         }
 
         [NonAction]
@@ -29,7 +32,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Upload()
+        public ActionResult Upload()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.HtmlEditorManagePictures))
             {

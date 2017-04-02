@@ -47,20 +47,20 @@ namespace Nop.Services.Messages
         /// <summary>
         /// Publishes the subscription event.
         /// </summary>
-        /// <param name="subscription">The newsletter subscription.</param>
+        /// <param name="email">The email.</param>
         /// <param name="isSubscribe">if set to <c>true</c> [is subscribe].</param>
         /// <param name="publishSubscriptionEvents">if set to <c>true</c> [publish subscription events].</param>
-        private void PublishSubscriptionEvent(NewsLetterSubscription subscription, bool isSubscribe, bool publishSubscriptionEvents)
+        private void PublishSubscriptionEvent(string email, bool isSubscribe, bool publishSubscriptionEvents)
         {
             if (publishSubscriptionEvents)
             {
                 if (isSubscribe)
                 {
-                    _eventPublisher.PublishNewsletterSubscribe(subscription);
+                    _eventPublisher.PublishNewsletterSubscribe(email);
                 }
                 else
                 {
-                    _eventPublisher.PublishNewsletterUnsubscribe(subscription);
+                    _eventPublisher.PublishNewsletterUnsubscribe(email);
                 }
             }
         }
@@ -89,7 +89,7 @@ namespace Nop.Services.Messages
             //Publish the subscription event 
             if (newsLetterSubscription.Active)
             {
-                PublishSubscriptionEvent(newsLetterSubscription, true, publishSubscriptionEvents);
+                PublishSubscriptionEvent(newsLetterSubscription.Email, true, publishSubscriptionEvents);
             }
 
             //Publish event
@@ -122,20 +122,20 @@ namespace Nop.Services.Messages
                 (newsLetterSubscription.Active && (originalSubscription.Email != newsLetterSubscription.Email)))
             {
                 //If the previous entry was false, but this one is true, publish a subscribe.
-                PublishSubscriptionEvent(newsLetterSubscription, true, publishSubscriptionEvents);
+                PublishSubscriptionEvent(newsLetterSubscription.Email, true, publishSubscriptionEvents);
             }
             
             if ((originalSubscription.Active && newsLetterSubscription.Active) && 
                 (originalSubscription.Email != newsLetterSubscription.Email))
             {
                 //If the two emails are different publish an unsubscribe.
-                PublishSubscriptionEvent(originalSubscription, false, publishSubscriptionEvents);
+                PublishSubscriptionEvent(originalSubscription.Email, false, publishSubscriptionEvents);
             }
 
             if ((originalSubscription.Active && !newsLetterSubscription.Active))
             {
                 //If the previous entry was true, but this one is false
-                PublishSubscriptionEvent(originalSubscription, false, publishSubscriptionEvents);
+                PublishSubscriptionEvent(originalSubscription.Email, false, publishSubscriptionEvents);
             }
 
             //Publish event
@@ -154,7 +154,7 @@ namespace Nop.Services.Messages
             _subscriptionRepository.Delete(newsLetterSubscription);
 
             //Publish the unsubscribe event 
-            PublishSubscriptionEvent(newsLetterSubscription, false, publishSubscriptionEvents);
+            PublishSubscriptionEvent(newsLetterSubscription.Email, false, publishSubscriptionEvents);
 
             //event notification
             _eventPublisher.EntityDeleted(newsLetterSubscription);

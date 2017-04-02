@@ -336,8 +336,7 @@
                                 refresh: true,
                                 numeric: false,
                                 previousNext: false,
-                                info: false,
-                                @Html.Partial("_GridPagerMessages")
+                                info: false
                             },
                             //details grid
                             detailInit: detailInit,
@@ -348,8 +347,8 @@
                                     title: "@T("Admin.Orders.Shipments.ID")",
                                     width: 50
                                 }, {
-                                    field: "CustomOrderNumber",
-                                    title: "@T("Admin.Orders.Shipments.CustomOrderNumber")",
+                                    field: "OrderId",
+                                    title: "@T("Admin.Orders.Shipments.OrderID")",
                                     width: 100
                                 }, {
                                     field: "TrackingNumber",
@@ -375,9 +374,7 @@
                                     field: "Id",
                                     title: "@T("Admin.Common.View")",
                                     width: 50,
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
-                                    template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                                    template: '<a href="@Url.Content("~/Admin/Order/ShipmentDetails/")#=Id#">@T("Admin.Common.View")</a>'
                                 }
                             ]
                         });
@@ -416,8 +413,7 @@
                                 refresh: true,
                                 numeric: false,
                                 previousNext: false,
-                                info: false,
-                                @Html.Partial("_GridPagerMessages")
+                                info: false
                             },
                             columns: [
                                 {

@@ -99,9 +99,7 @@ namespace Nop.Services.Seo
             string key = string.Format(URLRECORD_ALL_KEY);
             return _cacheManager.Get(key, () =>
             {
-                //we use no tracking here for performance optimization
-                //anyway records are loaded only for read-only operations
-                var query = from ur in _urlRecordRepository.TableNoTracking
+                var query = from ur in _urlRecordRepository.Table
                             select ur;
                 var urlRecords = query.ToList();
                 var list = new List<UrlRecordForCaching>();

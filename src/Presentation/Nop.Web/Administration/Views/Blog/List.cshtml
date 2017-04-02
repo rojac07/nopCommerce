@@ -1,6 +1,4 @@
-﻿@model BlogPostListModel
-
-@{
+﻿@{
     var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
     var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
 
@@ -26,33 +24,6 @@
 <div class="content">
     <div class="form-horizontal">
         <div class="panel-group">
-
-            @*hide the entire search block if no elements are displayed*@
-            <div class="panel panel-default panel-search" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                <div class="panel-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
-                                <div class="col-md-4">
-                                    @Html.NopLabelFor(model => model.SearchStoreId)
-                                </div>
-                                <div class="col-md-8">
-                                    @Html.NopDropDownList("SearchStoreId", Model.AvailableStores)
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="col-md-8 col-md-offset-4">
-                                    <button type="button" id="search-blogpost" class="btn btn-primary btn-search">
-                                        <i class="fa fa-search"></i>
-                                        @T("Admin.Common.Search")
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <div class="panel panel-default">
                 <div class="panel-body">
                     <div id="blogpost-grid"></div>
@@ -67,7 +38,7 @@
                                             url: "@Html.Raw(Url.Action("List", "Blog"))",
                                             type: "POST",
                                             dataType: "json",
-                                            data: additionalData
+                                            data: addAntiForgeryToken
                                         }
                                     },
                                     schema: {
@@ -87,8 +58,7 @@
                                 },
                                 pageable: {
                                     refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @Html.Partial("_GridPagerMessages")
+                                    pageSizes: [@(gridPageSizes)]
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -103,10 +73,9 @@
                                     field: "LanguageName",
                                     title: "@T("Admin.ContentManagement.Blog.BlogPosts.Fields.Language")"
                                 }, {
+                                    field: "Comments",
                                     title: "@T("Admin.ContentManagement.Blog.BlogPosts.Fields.Comments")",
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
-                                    template: '<a class="btn btn-default" href="Comments?filterByBlogPostId=#=Id#">@T("Admin.ContentManagement.Blog.BlogPosts.Fields.Comments") - #=ApprovedComments + NotApprovedComments# (#=NotApprovedComments#)</a>'
+                                    template: '<a href="Comments?filterByBlogPostId=#=Id#">@T("Admin.ContentManagement.Blog.BlogPosts.Fields.Comments") - #=Comments# </a>'
                                 }, {
                                     field: "StartDate",
                                     title: "@T("Admin.ContentManagement.Blog.BlogPosts.Fields.StartDate")",
@@ -129,34 +98,11 @@
                                     field: "Id",
                                     title: "@T("Admin.Common.Edit")",
                                     width: 100,
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
-                                    template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                    template: '<a href="Edit/#=Id#">@T("Admin.Common.Edit")</a>'
                                     }
                                 ]
                             });
                         });
-                    </script>
-
-                    <script type="text/javascript">
-                        $(document).ready(function() {
-                            //search button
-                            $('#search-blogpost').click(function() {
-                                //search
-                                var grid = $('#blogpost-grid').data('kendoGrid');
-                                grid.dataSource.page(1); //new search. Set page size to 1
-                                //grid.dataSource.read(); we already loaded the grid above using "page" function
-                                return false;
-                            });
-                        });
-
-                        function additionalData() {
-                            var data = {
-                                SearchStoreId: $('#SearchStoreId').val()
-                            };
-                            addAntiForgeryToken(data);
-                            return data;
-                        }
                     </script>
                 </div>
             </div>

@@ -281,7 +281,7 @@ namespace Nop.Services.Catalog
             return _cacheManager.Get(key, () =>
             {
                 var query = from pam in _productAttributeMappingRepository.Table
-                            orderby pam.DisplayOrder, pam.Id
+                            orderby pam.DisplayOrder
                             where pam.ProductId == productId
                             select pam;
                 var productAttributeMappings = query.ToList();
@@ -381,7 +381,7 @@ namespace Nop.Services.Catalog
             return _cacheManager.Get(key, () =>
             {
                 var query = from pav in _productAttributeValueRepository.Table
-                            orderby pav.DisplayOrder, pav.Id
+                            orderby pav.DisplayOrder
                             where pav.ProductAttributeMappingId == productAttributeMappingId
                             select pav;
                 var productAttributeValues = query.ToList();
@@ -478,7 +478,7 @@ namespace Nop.Services.Catalog
         public virtual IList<PredefinedProductAttributeValue> GetPredefinedProductAttributeValues(int productAttributeId)
         {
             var query = from ppav in _predefinedProductAttributeValueRepository.Table
-                        orderby ppav.DisplayOrder, ppav.Id
+                        orderby ppav.DisplayOrder
                         where ppav.ProductAttributeId == productAttributeId
                         select ppav;
             var values = query.ToList();

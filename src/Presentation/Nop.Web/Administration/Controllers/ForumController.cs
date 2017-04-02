@@ -31,12 +31,12 @@ namespace Nop.Admin.Controllers
 
         #region List
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -45,10 +45,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ForumGroupList(DataSourceRequest command)
+        public ActionResult ForumGroupList(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var forumGroups = _forumService.GetAllForumGroups();
             var gridModel = new DataSourceResult
@@ -66,10 +66,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ForumList(int forumGroupId)
+        public ActionResult ForumList(int forumGroupId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var forumGroup = _forumService.GetForumGroupById(forumGroupId);
             if (forumGroup == null)
@@ -94,7 +94,7 @@ namespace Nop.Admin.Controllers
 
         #region Create
 
-        public virtual ActionResult CreateForumGroup()
+        public ActionResult CreateForumGroup()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -103,7 +103,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult CreateForumGroup(ForumGroupModel model, bool continueEditing)
+        public ActionResult CreateForumGroup(ForumGroupModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -123,7 +123,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult CreateForum()
+        public ActionResult CreateForum()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -139,7 +139,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult CreateForum(ForumModel model, bool continueEditing)
+        public ActionResult CreateForum(ForumModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -168,7 +168,7 @@ namespace Nop.Admin.Controllers
 
         #region Edit
 
-        public virtual ActionResult EditForumGroup(int id)
+        public ActionResult EditForumGroup(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -183,7 +183,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult EditForumGroup(ForumGroupModel model, bool continueEditing)
+        public ActionResult EditForumGroup(ForumGroupModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -207,7 +207,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult EditForum(int id)
+        public ActionResult EditForum(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -227,7 +227,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult EditForum(ForumModel model, bool continueEditing)
+        public ActionResult EditForum(ForumModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -261,7 +261,7 @@ namespace Nop.Admin.Controllers
         #region Delete
 
         [HttpPost]
-        public virtual ActionResult DeleteForumGroup(int id)
+        public ActionResult DeleteForumGroup(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();
@@ -278,7 +278,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult DeleteForum(int id)
+        public ActionResult DeleteForum(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageForums))
                 return AccessDeniedView();

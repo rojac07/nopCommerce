@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Nop.Plugin.Widgets.NivoSlider")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Nop Solutions, Ltd")]
+[assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Nop.Plugin.Widgets.NivoSlider")]
-[assembly: AssemblyCopyright("Copyright © Nop Solutions, Ltd")]
+[assembly: AssemblyCopyright("Copyright ©  2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

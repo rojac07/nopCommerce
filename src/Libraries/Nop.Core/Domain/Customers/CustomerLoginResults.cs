@@ -10,7 +10,7 @@ namespace Nop.Core.Domain.Customers
         /// </summary>
         Successful = 1,
         /// <summary>
-        /// Customer does not exist (email or username)
+        /// Customer dies not exist (email or username)
         /// </summary>
         CustomerNotExist = 2,
         /// <summary>
@@ -29,9 +29,5 @@ namespace Nop.Core.Domain.Customers
         /// Customer not registered 
         /// </summary>
         NotRegistered = 6,
-        /// <summary>
-        /// Locked out
-        /// </summary>
-        LockedOut = 7,
     }
 }

@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using Nop.Core.Domain.Common;
-using Nop.Core.Domain.Directory;
 using Nop.Plugin.Pickup.PickupInStore.Domain;
 using Nop.Plugin.Pickup.PickupInStore.Models;
 using Nop.Plugin.Pickup.PickupInStore.Services;
 using Nop.Services.Common;
-using Nop.Services.Directory;
 using Nop.Services.Localization;
+using Nop.Services.Directory;
 using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Web.Framework.Controllers;
@@ -28,7 +26,6 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
         private readonly ICountryService _countryService;
         private readonly ILocalizationService _localizationService;
         private readonly IPermissionService _permissionService;
-        private readonly IStateProvinceService _stateProvinceService;
         private readonly IStorePickupPointService _storePickupPointService;
         private readonly IStoreService _storeService;
 
@@ -40,7 +37,6 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             ICountryService countryService,
             ILocalizationService localizationService,
             IPermissionService permissionService,
-            IStateProvinceService stateProvinceService,
             IStorePickupPointService storePickupPointService,
             IStoreService storeService)
         {
@@ -48,7 +44,6 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             this._countryService = countryService;
             this._localizationService = localizationService;
             this._permissionService = permissionService;
-            this._stateProvinceService = stateProvinceService;
             this._storePickupPointService = storePickupPointService;
             this._storeService = storeService;
         }
@@ -63,7 +58,7 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
                 return Content("Access denied");
 
-            return View("~/Plugins/Pickup.PickupInStore/Views/Configure.cshtml");
+            return View("~/Plugins/Pickup.PickupInStore/Views/PickupInStore/Configure.cshtml");
         }
 
         [HttpPost]
@@ -71,7 +66,7 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
         public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageShippingSettings))
-                return ErrorForKendoGridJson("Access denied");
+                return Content("Access denied");
 
             var pickupPoints = _storePickupPointService.GetAllStorePickupPoints();
             var model = pickupPoints.Select(x =>
@@ -101,27 +96,14 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
                 return Content("Access denied");
 
             var model = new StorePickupPointModel();
-
             model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var country in _countryService.GetAllCountries(showHidden: true))
                 model.Address.AvailableCountries.Add(new SelectListItem { Text = country.Name, Value = country.Id.ToString() });
-
-            var states = !model.Address.CountryId.HasValue ? new List<StateProvince>()
-                : _stateProvinceService.GetStateProvincesByCountryId(model.Address.CountryId.Value, showHidden: true);
-            if (states.Any())
-            {
-                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectState"), Value = "0" });
-                foreach (var state in states)
-                    model.Address.AvailableStates.Add(new SelectListItem { Text = state.Name, Value = state.Id.ToString() });
-            }
-            else
-                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
-
             model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Configuration.Settings.StoreScope.AllStores"), Value = "0" });
             foreach (var store in _storeService.GetAllStores())
                 model.AvailableStores.Add(new SelectListItem { Text = store.Name, Value = store.Id.ToString() });
 
-            return View("~/Plugins/Pickup.PickupInStore/Views/Create.cshtml", model);
+            return View("~/Plugins/Pickup.PickupInStore/Views/PickupInStore/Create.cshtml", model);
         }
 
         [HttpPost]
@@ -136,7 +118,6 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
                 Address1 = model.Address.Address1,
                 City = model.Address.City,
                 CountryId = model.Address.CountryId,
-                StateProvinceId = model.Address.StateProvinceId,
                 ZipPostalCode = model.Address.ZipPostalCode,
                 CreatedOnUtc = DateTime.UtcNow
             };
@@ -157,7 +138,7 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             ViewBag.btnId = btnId;
             ViewBag.formId = formId;
 
-            return View("~/Plugins/Pickup.PickupInStore/Views/Create.cshtml", model);
+            return View("~/Plugins/Pickup.PickupInStore/Views/PickupInStore/Create.cshtml", model);
         }
 
         public ActionResult Edit(int id)
@@ -187,31 +168,17 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
                     Address1 = address.Address1,
                     City = address.City,
                     CountryId = address.CountryId,
-                    StateProvinceId = address.StateProvinceId,
                     ZipPostalCode = address.ZipPostalCode
                 };
             }
-
             model.Address.AvailableCountries.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectCountry"), Value = "0" });
             foreach (var country in _countryService.GetAllCountries(showHidden: true))
                 model.Address.AvailableCountries.Add(new SelectListItem { Text = country.Name, Value = country.Id.ToString(), Selected = (address != null && country.Id == address.CountryId) });
-
-            var states = !model.Address.CountryId.HasValue ? new List<StateProvince>()
-                : _stateProvinceService.GetStateProvincesByCountryId(model.Address.CountryId.Value, showHidden: true);
-            if (states.Any())
-            {
-                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.SelectState"), Value = "0" });
-                foreach (var state in states)
-                    model.Address.AvailableStates.Add(new SelectListItem { Text = state.Name, Value = state.Id.ToString(), Selected = (address != null && state.Id == address.StateProvinceId) });
-            }
-            else
-                model.Address.AvailableStates.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Address.OtherNonUS"), Value = "0" });
-
             model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Configuration.Settings.StoreScope.AllStores"), Value = "0" });
             foreach (var store in _storeService.GetAllStores())
                 model.AvailableStores.Add(new SelectListItem { Text = store.Name, Value = store.Id.ToString(), Selected = store.Id == model.StoreId });
 
-            return View("~/Plugins/Pickup.PickupInStore/Views/Edit.cshtml", model);
+            return View("~/Plugins/Pickup.PickupInStore/Views/PickupInStore/Edit.cshtml", model);
         }
 
         [HttpPost]
@@ -229,7 +196,6 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             address.Address1 = model.Address.Address1;
             address.City = model.Address.City;
             address.CountryId = model.Address.CountryId;
-            address.StateProvinceId = model.Address.StateProvinceId;
             address.ZipPostalCode = model.Address.ZipPostalCode;
             if (address.Id > 0)
                 _addressService.UpdateAddress(address);
@@ -248,7 +214,7 @@ namespace Nop.Plugin.Pickup.PickupInStore.Controllers
             ViewBag.btnId = btnId;
             ViewBag.formId = formId;
 
-            return View("~/Plugins/Pickup.PickupInStore/Views/Edit.cshtml", model);
+            return View("~/Plugins/Pickup.PickupInStore/Views/PickupInStore/Edit.cshtml", model);
         }
 
         [HttpPost]

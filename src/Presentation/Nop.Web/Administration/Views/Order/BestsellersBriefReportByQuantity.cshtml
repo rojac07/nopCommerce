@@ -63,8 +63,7 @@
                         serverSorting: true
                     },
                     pageable: {
-                        refresh: true,
-                        @Html.Partial("_GridPagerMessages")
+                        refresh: true
                     },
                     editable: {
                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -84,9 +83,7 @@
                         field: "ProductId",
                         title: "@T("Admin.Common.View")",
                         width: 100,
-                        headerAttributes: { style: "text-align:center" },
-                        attributes: { style: "text-align:center" },
-                        template: '<a class="btn btn-xs btn-default" href="@Url.Content("~/Admin/Product/Edit/")#=ProductId#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                        template: '<a href="@Url.Content("~/Admin/Product/Edit/")#=ProductId#">@T("Admin.Common.View")</a>'
                     }]
                 });
             });

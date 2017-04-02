@@ -39,8 +39,7 @@
                             refresh: true,
                             numeric: false,
                             previousNext: false,
-                            info: false,
-                            @Html.Partial("_GridPagerMessages")
+                            info: false
                         },
                         editable: {
                             confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -59,9 +58,7 @@
                             field: "Id",
                             title: "@T("Admin.Common.Edit")",
                             width: 100,
-                            headerAttributes: { style: "text-align:center" },
-                            attributes: { style: "text-align:center" },
-                            template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Setting/ReturnRequestReasonEdit/")#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                            template: '<a href="@Url.Content("~/Admin/Setting/ReturnRequestReasonEdit/")#=Id#">@T("Admin.Common.Edit")</a>'
                         }]
                     });
                 });

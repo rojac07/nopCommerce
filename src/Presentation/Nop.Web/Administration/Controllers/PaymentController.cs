@@ -31,9 +31,9 @@ namespace Nop.Admin.Controllers
 	    private readonly IWebHelper _webHelper;
 	    private readonly ILocalizationService _localizationService;
 
-        #endregion
+		#endregion
 
-        #region Ctor
+		#region Constructors
 
         public PaymentController(IPaymentService paymentService,
             PaymentSettings paymentSettings,
@@ -52,13 +52,13 @@ namespace Nop.Admin.Controllers
             this._pluginFinder = pluginFinder;
             this._webHelper = webHelper;
             this._localizationService = localizationService;
-        }
+		}
 
 		#endregion 
 
         #region Methods
 
-        public virtual ActionResult Methods()
+        public ActionResult Methods()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
@@ -67,10 +67,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Methods(DataSourceRequest command)
+        public ActionResult Methods(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var paymentMethodsModel = new List<PaymentMethodModel>();
             var paymentMethods = _paymentService.LoadAllPaymentMethods();
@@ -92,7 +92,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult MethodUpdate([Bind(Exclude = "ConfigurationRouteValues")] PaymentMethodModel model)
+        public ActionResult MethodUpdate([Bind(Exclude = "ConfigurationRouteValues")] PaymentMethodModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
@@ -126,7 +126,7 @@ namespace Nop.Admin.Controllers
             return new NullJsonResult();
         }
 
-        public virtual ActionResult ConfigureMethod(string systemName)
+        public ActionResult ConfigureMethod(string systemName)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
@@ -146,7 +146,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult MethodRestrictions()
+        public ActionResult MethodRestrictions()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();
@@ -179,7 +179,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ActionName("MethodRestrictions")]
-        public virtual ActionResult MethodRestrictionsSave(FormCollection form)
+        public ActionResult MethodRestrictionsSave(FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePaymentMethods))
                 return AccessDeniedView();

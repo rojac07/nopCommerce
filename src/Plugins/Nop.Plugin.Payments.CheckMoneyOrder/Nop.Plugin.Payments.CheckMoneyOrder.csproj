@@ -128,10 +128,10 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Configure.cshtml">
+    <Content Include="Views\PaymentCheckMoneyOrder\Configure.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Views\PaymentInfo.cshtml">
+    <Content Include="Views\PaymentCheckMoneyOrder\PaymentInfo.cshtml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <None Include="app.config" />

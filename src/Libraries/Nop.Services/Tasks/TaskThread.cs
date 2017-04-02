@@ -120,17 +120,13 @@ namespace Nop.Services.Tasks
         }
 
         /// <summary>
-        /// Gets the interval (in milliseconds) at which to run the task
+        /// Gets the interval at which to run the tasks
         /// </summary>
         public int Interval
         {
             get
             {
-                //if somobody entered more than "2147483" seconds, then an exception could be thrown (exceeds int.MaxValue)
-                int interval = this.Seconds * 1000;
-                if (interval <= 0)
-                    interval = int.MaxValue;
-                return interval;
+                return this.Seconds * 1000;
             }
         }
 

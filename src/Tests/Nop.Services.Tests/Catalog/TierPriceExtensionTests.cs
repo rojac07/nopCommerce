@@ -63,7 +63,7 @@ namespace Nop.Services.Tests.Catalog
                 Quantity = 5
             });
 
-            tierPrices = tierPrices.RemoveDuplicatedQuantities().ToList();
+            tierPrices.RemoveDuplicatedQuantities();
 
             tierPrices.FirstOrDefault(x => x.Id == 1).ShouldBeNull();
             tierPrices.FirstOrDefault(x => x.Id == 2).ShouldNotBeNull();

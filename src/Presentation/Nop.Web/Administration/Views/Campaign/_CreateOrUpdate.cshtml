@@ -1,6 +1,4 @@
-﻿@using Nop.Core.Domain.Common
-
-@model CampaignModel
+﻿@model CampaignModel
 
 @Html.ValidationSummary(true)
 @Html.HiddenFor(model => model.Id)
@@ -14,15 +12,6 @@
                     <div class="panel panel-body">
                         <div class="callout bg-gray-light">
                             @T("Admin.Promotions.Campaigns.Warning")
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-3">
-                                @Html.NopLabelFor(model => model.EmailAccountId)
-                            </div>
-                            <div class="col-md-9">
-                                @Html.NopDropDownListFor(model => model.EmailAccountId, Model.AvailableEmailAccounts)
-                                @Html.ValidationMessageFor(model => model.EmailAccountId)
-                            </div>
                         </div>
                         <div class="form-group">
                             <div class="col-md-3">
@@ -60,7 +49,7 @@
                             @Html.NopLabelFor(model => model.Name)
                         </div>
                         <div class="col-md-9">
-                            @Html.NopEditorFor(model => model.Name, required: true)
+                            @Html.NopEditorFor(model => model.Name)
                             @Html.ValidationMessageFor(model => model.Name)
                         </div>
                     </div>
@@ -69,7 +58,7 @@
                             @Html.NopLabelFor(model => model.Subject)
                         </div>
                         <div class="col-md-9">
-                            @Html.NopEditorFor(model => model.Subject, required: true)
+                            @Html.NopEditorFor(model => model.Subject)
                             @Html.ValidationMessageFor(model => model.Subject)
                         </div>
                     </div>
@@ -78,32 +67,15 @@
                             @Html.NopLabelFor(model => model.Body)
                         </div>
                         <div class="col-md-9">
-                            @if (EngineContext.Current.Resolve<AdminAreaSettings>().UseRichEditorInMessageTemplates)
-                            {
+                            @{
                                 //we use rich editor with BODY tag supported
                                 //it could be a better practice to implement one more editor (similar to RichEditor.cshtml)
                                 //with "enableFullPage" property set to "true". but we do not want to duplicate source code
                                 //that's why we use this workaround
                                 //we store a value into "ViewData" and then use it in the RichEditor.cshtml file
                                 ViewData["nop.RichEditor.EnableFullPage"] = true;
-                                <div class="input-group input-group-required">
-                                    @Html.EditorFor(model => model.Body, "RichEditor")
-                                    <div class="input-group-btn">
-                                        @Html.RequiredHint()
-                                    </div>
-                                </div>
                             }
-                            else
-                            {
-                                @Html.NopTextAreaFor(model => model.Body, required: true);
-                                <text>
-                                    <script type="text/javascript">
-                                        $(document).ready(function () {
-                                            $('#@Html.FieldIdFor(model => model.Body)').height($('#@Html.FieldIdFor(model => model.Body)')[0].scrollHeight);
-                                        });
-                                    </script>
-                                </text>
-                            }
+                            @Html.EditorFor(model => model.Body, "RichEditor")
                             @Html.ValidationMessageFor(model => model.Body)
                         </div>
                     </div>

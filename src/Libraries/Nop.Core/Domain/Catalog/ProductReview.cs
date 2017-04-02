@@ -43,11 +43,6 @@ namespace Nop.Core.Domain.Catalog
         public string ReviewText { get; set; }
 
         /// <summary>
-        /// Gets or sets the reply text
-        /// </summary>
-        public string ReplyText { get; set; }
-
-        /// <summary>
         /// Review rating
         /// </summary>
         public int Rating { get; set; }

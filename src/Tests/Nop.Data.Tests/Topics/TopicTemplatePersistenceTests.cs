@@ -1,4 +1,5 @@
-﻿using Nop.Tests;
+﻿using Nop.Core.Domain.Topics;
+using Nop.Tests;
 using NUnit.Framework;
 
 namespace Nop.Data.Tests.Topics
@@ -9,11 +10,18 @@ namespace Nop.Data.Tests.Topics
         [Test]
         public void Can_save_and_load_topicTemplate()
         {
-            var topicTemplate = this.GetTestTopicTemplate();
+            var topicTemplate = new TopicTemplate
+            {
+                Name = "Name 1",
+                ViewPath = "ViewPath 1",
+                DisplayOrder = 1,
+            };
 
-            var fromDb = SaveAndLoadEntity(this.GetTestTopicTemplate());
+            var fromDb = SaveAndLoadEntity(topicTemplate);
             fromDb.ShouldNotBeNull();
-            fromDb.PropertiesShouldEqual(topicTemplate);
+            fromDb.Name.ShouldEqual("Name 1");
+            fromDb.ViewPath.ShouldEqual("ViewPath 1");
+            fromDb.DisplayOrder.ShouldEqual(1);
         }
     }
 }

@@ -13,7 +13,9 @@ namespace Nop.Admin.Models.Localization
     {
         public LanguageModel()
         {
+            FlagFileNames = new List<string>();
             AvailableCurrencies = new List<SelectListItem>();
+
             SelectedStoreIds = new List<int>();
             AvailableStores = new List<SelectListItem>();
         }
@@ -32,8 +34,9 @@ namespace Nop.Admin.Models.Localization
         
         //flags
         [NopResourceDisplayName("Admin.Configuration.Languages.Fields.FlagImageFileName")]
+        [AllowHtml]
         public string FlagImageFileName { get; set; }
-
+        public IList<string> FlagFileNames { get; set; }
 
         [NopResourceDisplayName("Admin.Configuration.Languages.Fields.Rtl")]
         public bool Rtl { get; set; }

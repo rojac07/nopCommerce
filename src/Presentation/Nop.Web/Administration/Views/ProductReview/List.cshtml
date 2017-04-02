@@ -1,10 +1,8 @@
-﻿@using Nop.Services.Stores
-@model ProductReviewListModel
+﻿@model ProductReviewListModel
 
 @{
     var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
     var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
-    var stores = EngineContext.Current.Resolve<IStoreService>().GetAllStores();
 
     //page title
     ViewBag.Title = T("Admin.Catalog.ProductReviews").Text;
@@ -17,24 +15,20 @@
     <h1 class="pull-left">
         @T("Admin.Catalog.ProductReviews")
     </h1>
-    @if (!Model.IsLoggedInAsVendor)
-    {
-        //these buttons are not visible to vendors
-        <div class="pull-right">
-            <button type="button" id="approve-selected" class="btn bg-green">
-                <i class="fa fa-check-square-o"></i>
-                @T("Admin.Catalog.ProductReviews.ApproveSelected")
-            </button>
-            <button type="button" id="disapprove-selected" class="btn bg-navy">
-                <i class="fa fa-minus-square-o"></i>
-                @T("Admin.Catalog.ProductReviews.DisapproveSelected")
-            </button>
-            <button type="button" id="delete-selected" class="btn bg-red">
-                <i class="fa fa-trash-o"></i>
-                @T("Admin.Catalog.ProductReviews.DeleteSelected")
-            </button>
-        </div>
-    }
+    <div class="pull-right">
+        <button type="button" id="approve-selected" class="btn bg-green">
+            <i class="fa fa-check-square-o"></i>
+            @T("Admin.Catalog.ProductReviews.ApproveSelected")
+        </button>
+        <button type="button" id="disapprove-selected" class="btn bg-navy">
+            <i class="fa fa-minus-square-o"></i>
+            @T("Admin.Catalog.ProductReviews.DisapproveSelected")
+        </button>
+        <button type="button" id="delete-selected" class="btn bg-red">
+            <i class="fa fa-trash-o"></i>
+            @T("Admin.Catalog.ProductReviews.DeleteSelected")
+        </button>
+    </div>
 </div>
 
 <div class="content">
@@ -66,14 +60,6 @@
                                 </div>
                                 <div class="col-md-8">
                                     @Html.NopEditorFor(model => model.SearchText)
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <div class="col-md-4">
-                                    @Html.NopLabelFor(model => model.SearchApprovedId)
-                                </div>
-                                <div class="col-md-8">
-                                    @Html.NopDropDownList("SearchApprovedId", Model.AvailableApprovedOptions)
                                 </div>
                             </div>
                             <div class="form-group">
@@ -168,15 +154,13 @@
                                 },
                                 pageable: {
                                     refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @Html.Partial("_GridPagerMessages")
+                                    pageSizes: [@(gridPageSizes)]
                                 },
                                 scrollable: false,
                                 dataBound: onDataBound,
                                 columns: [
                                     {
                                         field: "Id",
-                                        hidden: @(Model.IsLoggedInAsVendor ? "true" : "false"),
                                         headerTemplate: "<input id='mastercheckbox' type='checkbox'/>",
                                         headerAttributes: { style: "text-align:center" },
                                         attributes: { style: "text-align:center" },
@@ -184,7 +168,6 @@
                                         width: 50
                                     }, {
                                         field: "StoreName",
-                                        hidden: @(stores.Count > 1 ? "false" : "true"),
                                         title: "@T("Admin.Catalog.ProductReviews.Fields.Store")",
                                         width: 150
                                     }, {
@@ -206,17 +189,10 @@
                                         title: "@T("Admin.Catalog.ProductReviews.Fields.ReviewText")",
                                         width: 400,
                                         encoded: false
-                                    },  {
-                                        field: "ReplyText",
-                                        title: "@T("Admin.Catalog.ProductReviews.Fields.ReplyText")",
-                                        width: 400,
-                                        encoded: false
                                     }, {
                                         field: "Rating",
                                         title: "@T("Admin.Catalog.ProductReviews.Fields.Rating")",
-                                        width: 100,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" }
+                                        width: 100
                                     }, {
                                         field: "IsApproved",
                                         title: "@T("Admin.Catalog.ProductReviews.Fields.IsApproved")",
@@ -234,9 +210,7 @@
                                         field: "Id",
                                         title: "@T("Admin.Common.Edit")",
                                         width: 50,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                        template: '<a href="Edit/#=Id#">@T("Admin.Common.Edit")</a>'
                                     }
                                 ]
                             });
@@ -346,7 +320,7 @@
                             });
 
                             //wire up checkboxes.
-                            $('#productreviews-grid').on('change', 'input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]', function(e) {
+                            $('#productreviews-grid').on('change', 'input[type=checkbox][id!=mastercheckbox]', function(e) {
                                 var $check = $(this);
                                 if ($check.is(":checked") == true) {
                                     var checked = jQuery.inArray($check.val(), selectedIds);
@@ -373,8 +347,7 @@
                                 CreatedOnTo: $('#@Html.FieldIdFor(model => model.CreatedOnTo)').val(),
                                 SearchText: $('#@Html.FieldIdFor(model => model.SearchText)').val(),
                                 SearchStoreId: $('#@Html.FieldIdFor(model => model.SearchStoreId)').val(),
-                                SearchProductId: $('#@Html.FieldIdFor(model => model.SearchProductId)').val(),
-                                SearchApprovedId: $('#SearchApprovedId').val()
+                                SearchProductId: $('#@Html.FieldIdFor(model => model.SearchProductId)').val()
                             };
                             addAntiForgeryToken(data);
                             return data;
@@ -382,7 +355,7 @@
 
                         function onDataBound(e) {
 
-                            $('#productreviews-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').each(function() {
+                            $('#productreviews-grid input[type=checkbox][id!=mastercheckbox]').each(function() {
                                 var currentId = $(this).val();
                                 var checked = jQuery.inArray(currentId, selectedIds);
                                 //set checked based on if current checkbox's value is in selectedIds.
@@ -393,8 +366,8 @@
                         }
 
                         function updateMasterCheckbox() {
-                            var numChkBoxes = $('#productreviews-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]').length;
-                            var numChkBoxesChecked = $('#productreviews-grid input[type=checkbox][id!=mastercheckbox][class=checkboxGroups]:checked').length;
+                            var numChkBoxes = $('#productreviews-grid input[type=checkbox][id!=mastercheckbox]').length;
+                            var numChkBoxesChecked = $('#productreviews-grid input[type=checkbox][id!=mastercheckbox]:checked').length;
                             $('#mastercheckbox').attr('checked', numChkBoxes == numChkBoxesChecked && numChkBoxes > 0);
                         }
 

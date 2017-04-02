@@ -7,9 +7,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Nop.Plugin.ExchangeRate.EcbExchange")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("Nop Solutions, Ltd")]
+[assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct("Nop.Plugin.ExchangeRate.EcbExchange")]
-[assembly: AssemblyCopyright("Copyright © Nop Solutions, Ltd")]
+[assembly: AssemblyCopyright("Copyright © Microsoft 2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

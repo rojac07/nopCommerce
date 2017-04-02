@@ -139,11 +139,6 @@ namespace Nop.Services.Payments
         /// </summary>
         bool SkipPaymentInfo { get; }
 
-        /// <summary>
-        /// Gets a payment method description that will be displayed on checkout pages in the public store
-        /// </summary>
-        string PaymentMethodDescription { get; }
-
         #endregion
     }
 }

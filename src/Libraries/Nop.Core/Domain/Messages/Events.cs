@@ -4,23 +4,23 @@ namespace Nop.Core.Domain.Messages
 {
     public class EmailSubscribedEvent
     {
-        private readonly NewsLetterSubscription _subscription;
+        private readonly string _email;
 
-        public EmailSubscribedEvent(NewsLetterSubscription subscription)
+        public EmailSubscribedEvent(string email)
         {
-            _subscription = subscription;
+            _email = email;
         }
 
-        public NewsLetterSubscription Subscription
+        public string Email
         {
-            get { return _subscription; }
+            get { return _email; }
         }
 
         public bool Equals(EmailSubscribedEvent other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(other._subscription, _subscription);
+            return Equals(other._email, _email);
         }
 
         public override bool Equals(object obj)
@@ -33,29 +33,29 @@ namespace Nop.Core.Domain.Messages
 
         public override int GetHashCode()
         {
-            return (_subscription != null ? _subscription.GetHashCode() : 0);
+            return (_email != null ? _email.GetHashCode() : 0);
         }
     }
 
     public class EmailUnsubscribedEvent
     {
-        private readonly NewsLetterSubscription _subscription;
+        private readonly string _email;
 
-        public EmailUnsubscribedEvent(NewsLetterSubscription subscription)
+        public EmailUnsubscribedEvent(string email)
         {
-            _subscription = subscription;
+            _email = email;
         }
 
-        public NewsLetterSubscription Subscription
+        public string Email
         {
-            get { return _subscription; }
+            get { return _email; }
         }
 
         public bool Equals(EmailUnsubscribedEvent other)
         {
             if (ReferenceEquals(null, other)) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(other._subscription, _subscription);
+            return Equals(other._email, _email);
         }
 
         public override bool Equals(object obj)
@@ -68,7 +68,7 @@ namespace Nop.Core.Domain.Messages
 
         public override int GetHashCode()
         {
-            return (_subscription != null ? _subscription.GetHashCode() : 0);
+            return (_email != null ? _email.GetHashCode() : 0);
         }
     }
 

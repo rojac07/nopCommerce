@@ -131,14 +131,6 @@
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-body">
-                @if (Model.LastPaymentFailed)
-                {
-                    <div class="form-group">
-                        <div class="col-md-12">
-                            @T("Admin.RecurringPayments.History.LastPaymentFailed")
-                        </div>
-                    </div>
-                }
                 @if (!String.IsNullOrEmpty(Model.NextPaymentDate))
                 {
                     <div class="form-group">
@@ -202,8 +194,7 @@
                                 refresh: true,
                                 numeric: false,
                                 previousNext: false,
-                                info: false,
-                                @Html.Partial("_GridPagerMessages")
+                                info: false
                             },
                             editable: {
                                 confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -212,12 +203,10 @@
                             scrollable: false,
                             columns: [
                             {
-                                field: "CustomOrderNumber",
-                                title: "@T("Admin.RecurringPayments.History.CustomOrderNumber")",
+                                field: "OrderId",
+                                title: "@T("Admin.RecurringPayments.History.Order")",
                                 width: 200,
-                                headerAttributes: { style: "text-align:center" },
-                                attributes: { style: "text-align:center" },
-                                template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/Edit/")#=OrderId#"><i class="fa fa-eye"></i>#=CustomOrderNumber# - @T("Admin.Common.View")</a>'
+                                template: '<a href="@Url.Content("~/Admin/Order/Edit/")#=OrderId#">#=OrderId# - @T("Admin.Common.View")</a>'
                             }, {
                                 field: "OrderStatus",
                                 title: "@T("Admin.RecurringPayments.History.OrderStatus")",

@@ -25,9 +25,7 @@ namespace Nop.Services.Media
         private static CloudBlobClient blobClient = null;
         private static CloudBlobContainer container_thumb = null;
 
-        private readonly MediaSettings _mediaSettings;
         private readonly NopConfig _config;
-
         #endregion
 
         #region Ctor
@@ -52,7 +50,6 @@ namespace Nop.Services.Media
                 mediaSettings,
                 dataProvider)
         {
-            this._mediaSettings = mediaSettings;
             this._config = config;
 
             if (String.IsNullOrEmpty(_config.AzureBlobStorageConnectionString))
@@ -145,21 +142,12 @@ namespace Nop.Services.Media
         /// </summary>
         /// <param name="thumbFilePath">Thumb file path</param>
         /// <param name="thumbFileName">Thumb file name</param>
-        /// <param name="mimeType">MIME type</param>
         /// <param name="binary">Picture binary</param>
-        protected override void SaveThumb(string thumbFilePath, string thumbFileName, string mimeType, byte[] binary)
+        protected override void SaveThumb(string thumbFilePath, string thumbFileName, byte[] binary)
         {
             CloudBlockBlob blockBlob = container_thumb.GetBlockBlobReference(thumbFileName);
-            
-            //set mime type
-            if (!String.IsNullOrEmpty(mimeType))
-                blockBlob.Properties.ContentType = mimeType;
-
-            //set cache control
-            if (!string.IsNullOrEmpty(_mediaSettings.AzureCacheControlHeader))
-                blockBlob.Properties.CacheControl = _mediaSettings.AzureCacheControlHeader;
-
             blockBlob.UploadFromByteArray(binary, 0, binary.Length);
+
         }
 
         #endregion

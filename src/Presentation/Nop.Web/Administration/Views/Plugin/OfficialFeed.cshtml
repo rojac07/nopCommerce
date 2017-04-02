@@ -23,7 +23,13 @@
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-6">
-                            @T("Admin.Configuration.Plugins.OfficialFeed.Instructions")
+                            <p>
+                                Here you can find third-party extensions and themes which are developed by our community and partners.
+                                They are also available in our
+                                <a href="http://www.nopcommerce.com/extensions-and-themes.aspx?utm_source=admin-panel&utm_medium=official-plugins&utm_campaign=admin-panel" target="_blank">
+                                    extensions directory
+                                </a>
+                            </p>
                             <div class="form-group">
                                 <div class="col-md-4">
                                     @Html.NopLabelFor(model => model.SearchName)
@@ -102,8 +108,7 @@
                                     serverSorting: true
                                 },
                                 pageable: {
-                                    refresh: true,
-                                    @Html.Partial("_GridPagerMessages")
+                                    refresh: true
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -130,7 +135,7 @@
                                         field: "Url",
                                         width: 150,
                                         title: "@T("Admin.Configuration.Plugins.OfficialFeed.Download")",
-                                        template: '<a class="btn btn-default" href="#=Url#?utm_source=admin-panel&utm_medium=official-plugins&utm_campaign=admin-panel" target="_blank"><i class="fa fa-download"></i>@T("Admin.Configuration.Plugins.OfficialFeed.Download")</a>',
+                                        template: '<a href="#=Url#?utm_source=admin-panel&utm_medium=official-plugins&utm_campaign=admin-panel" target="_blank">@T("Admin.Configuration.Plugins.OfficialFeed.Download")</a>',
                                         headerAttributes: { style: "text-align:center" },
                                         attributes: { style: "text-align:center" }
                                     },

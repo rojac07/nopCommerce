@@ -48,8 +48,6 @@ namespace Nop.Web.Models.Catalog
 
         public string ReviewText { get; set; }
 
-        public string ReplyText { get; set; }
-
         public int Rating { get; set; }
 
         public ProductReviewHelpfulnessModel Helpfulness { get; set; }

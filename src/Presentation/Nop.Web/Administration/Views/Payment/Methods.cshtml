@@ -79,8 +79,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -150,7 +149,7 @@
                                     field: "SystemName",
                                     title: "@T("Admin.Configuration.Payment.Methods.Configure")",
                                     width: 150,
-                                    template: '<a class="btn btn-default" href="ConfigureMethod?systemName=#=SystemName#"><i class="fa fa-cog"></i>@T("Admin.Configuration.Payment.Methods.Configure")</a>'
+                                    template: '<a href="ConfigureMethod?systemName=#=SystemName#">@T("Admin.Configuration.Payment.Methods.Configure")</a>'
                                 }, {
                                     command: {
                                         name: "edit",

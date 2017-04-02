@@ -56,14 +56,14 @@ namespace Nop.Plugin.Shipping.Fedex.Controllers
                 foreach (string service in services.Services)
                 {
                     string serviceId = FedexServices.GetServiceId(service);
-                    if (!String.IsNullOrEmpty(serviceId))
+                    if (!String.IsNullOrEmpty(serviceId) && !String.IsNullOrEmpty(carrierServicesOfferedDomestic))
                     {
                         if (carrierServicesOfferedDomestic.Contains(serviceId))
                             model.CarrierServicesOffered.Add(service);
                     }
                 }
 
-            return View("~/Plugins/Shipping.Fedex/Views/Configure.cshtml", model);
+            return View("~/Plugins/Shipping.Fedex/Views/ShippingFedex/Configure.cshtml", model);
         }
 
         [HttpPost]

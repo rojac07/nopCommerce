@@ -1,4 +1,5 @@
 ﻿@model LanguageModel
+
 @Html.ValidationSummary(true)
 @Html.HiddenFor(model => model.Id)
 
@@ -38,6 +39,16 @@
 
 @helper TabInfo()
 {
+    <script type="text/javascript">
+        function toggleFlags() {
+            $('#pnlAllFlags').toggle();
+            if ($('#pnlAllFlags').css('display') == 'none') {
+                $('#displayAllFlags').html('@T("Admin.Common.Show")');
+            } else {
+                $('#displayAllFlags').html('@T("Admin.Common.Hide")');
+            }
+        }
+    </script>
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-body">
@@ -46,7 +57,7 @@
                         @Html.NopLabelFor(model => model.Name)
                     </div>
                     <div class="col-md-9">
-                        @Html.NopEditorFor(model => model.Name, required: true)
+                        @Html.NopEditorFor(model => model.Name)
                         @Html.ValidationMessageFor(model => model.Name)
                     </div>
                 </div>
@@ -73,7 +84,7 @@
                         @Html.NopLabelFor(model => model.UniqueSeoCode)
                     </div>
                     <div class="col-md-9">
-                        @Html.NopEditorFor(model => model.UniqueSeoCode, required: true)
+                        @Html.NopEditorFor(model => model.UniqueSeoCode)
                         @Html.ValidationMessageFor(model => model.UniqueSeoCode)
                     </div>
                 </div>
@@ -82,29 +93,17 @@
                         @Html.NopLabelFor(model => model.FlagImageFileName)
                     </div>
                     <div class="col-md-9">
-                        @Html.NopEditorFor(model => model.FlagImageFileName, renderFormControlClass: false)
+                        @Html.NopEditorFor(model => model.FlagImageFileName)
                         @Html.ValidationMessageFor(model => model.FlagImageFileName)
-                        <script>
-                            $(function() {
-                                $('#FlagImageFileName').kendoDropDownList({
-                                    dataTextField: "Text",
-                                    dataValueField: "Value",
-                                    valueTemplate: '<span class="image" style="background-image: url(\'@Url.Content("~/Content/Images/flags/#:data.Text#")\'); width: 16px; height: 11px;"></span><span>#:data.Value#</span>',
-                                    template: '<span class="image" style="background-image: url(\'@Url.Content("~/Content/Images/flags/#:data.Text#")\'); width: 16px; height: 11px;"></span><span>#:data.Value#</span>',
-                                    dataSource: {
-                                        transport: {
-                                            type: "json",
-                                            read: {
-                                                url: "@Html.Raw(Url.Action("GetAvailableFlagFileNames", "Language"))",
-                                                type: "POST",
-                                                dataType: "json",
-                                                data: addAntiForgeryToken
-                                            }
-                                        }
-                                    }
-                                }).data("kendoDropDownList");
-                            });
-                        </script>
+                        <a id="displayAllFlags" href="javascript:toggleFlags();">@T("Admin.Common.Show")</a>
+                        <div id="pnlAllFlags" style="display: none">
+                            @foreach (var fileName in Model.FlagFileNames)
+                            {
+                                <img alt="" src="@Url.Content("~/Content/Images/flags/" + fileName)" />
+                                @fileName
+                                <text>, </text>
+                            }
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -310,8 +309,7 @@
                                 },
                                 pageable: {
                                     refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @Html.Partial("_GridPagerMessages")
+                                    pageSizes: [@(gridPageSizes)]
                                 },
                                 toolbar: [{ name: "create", text: "@T("Admin.Common.AddNewRecord")" }],
                                 editable: {

@@ -1,14 +1,8 @@
-﻿@using Nop.Core.Domain;
-@using Nop.Core.Domain.Common;
+﻿@using Nop.Core.Domain.Common;
 @using Nop.Core.Domain.Seo
 @using Nop.Core.Infrastructure;
-@using Nop.Services.Security;
-
 @{
-    var storeSettings = EngineContext.Current.Resolve<StoreInformationSettings>();
-    var permissionService = EngineContext.Current.Resolve<IPermissionService>();
-    var displayMiniProfiler = storeSettings.DisplayMiniProfilerInPublicStore
-        && (!storeSettings.DisplayMiniProfilerForAdminOnly || permissionService.Authorize(StandardPermissionProvider.AccessAdminPanel));
+    var displayMiniProfiler = EngineContext.Current.Resolve<Nop.Core.Domain.StoreInformationSettings>().DisplayMiniProfilerInPublicStore;
 
     Html.AppendScriptParts("~/Scripts/public.ajaxcart.js");
     Html.AppendScriptParts("~/Scripts/public.common.js");

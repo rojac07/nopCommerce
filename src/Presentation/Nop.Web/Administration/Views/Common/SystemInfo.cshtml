@@ -122,11 +122,12 @@
                         <div class="col-md-9">
                             <a id="serverVariablesShowHide" href="javascript:toggleLoadedServerVariables();">@T("Admin.Common.Show")</a>
                             <div id="pnlServerVariables" style="display: none; word-break: break-all">
-                                <ul>
+                                <ul class="common-list">
                                     @foreach (var serverVariable in Model.ServerVariables)
                                     {
                                         <li>
-                                            <strong>@serverVariable.Name</strong>: @serverVariable.Value
+                                            @serverVariable.Name<text>:</text>
+                                            @serverVariable.Value
                                         </li>
                                     }
                                 </ul>
@@ -140,31 +141,15 @@
                         <div class="col-md-9">
                             <a id="loadedAssembliesShowHide" href="javascript:toggleLoadedAssemblies();">@T("Admin.Common.Show")</a>
                             <div id="pnlLoadedAssemblies" style="display: none">
-                                <ul>
+                                <ul class="common-list">
                                     @foreach (var assembly in Model.LoadedAssemblies)
                                     {
                                         <li>
-                                            <div>
-                                                <strong>@assembly.FullName</strong>
-                                                @if (assembly.IsDebug)
-                                                {
-                                                    <span class="label label-warning">Debug</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="label label-success">Release</span>
-                                                }
-                                            </div>
+                                            <div>@assembly.FullName</div>
                                             @if (!String.IsNullOrEmpty(assembly.Location))
                                             {
-                                                <div style="white-space: nowrap;">
-                                                    <em>@assembly.Location</em>
-                                                </div>
-                                            }
-                                            @if (assembly.BuildDate.HasValue)
-                                            {
                                                 <div>
-                                                    @assembly.BuildDate.Value.ToString("s")
+                                                    <em>@assembly.Location</em>
                                                 </div>
                                             }
                                         </li>

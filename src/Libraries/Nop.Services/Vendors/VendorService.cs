@@ -65,9 +65,6 @@ namespace Nop.Services.Vendors
 
             vendor.Deleted = true;
             UpdateVendor(vendor);
-
-            //event notification
-            _eventPublisher.EntityDeleted(vendor);
         }
 
         /// <summary>

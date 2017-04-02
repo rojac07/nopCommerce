@@ -37,7 +37,7 @@ namespace Nop.Services.Tests.Payments
         [Test]
         public void Can_load_paymentMethods()
         {
-            var srcm = _paymentService.LoadAllPaymentMethods();
+            var srcm = _paymentService.LoadActivePaymentMethods();
             srcm.ShouldNotBeNull();
             (srcm.Any()).ShouldBeTrue();
         }

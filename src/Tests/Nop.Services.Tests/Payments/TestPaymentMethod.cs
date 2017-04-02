@@ -156,10 +156,6 @@ namespace Nop.Services.Tests.Payments
             routeValues = null;
         }
 
-        /// <summary>
-        /// Get type of controller
-        /// </summary>
-        /// <returns>Type</returns>
         public Type GetControllerType()
         {
             return typeof(TestPaymentMethod);
@@ -174,7 +170,10 @@ namespace Nop.Services.Tests.Payments
         /// </summary>
         public bool SupportCapture
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -182,7 +181,10 @@ namespace Nop.Services.Tests.Payments
         /// </summary>
         public bool SupportPartiallyRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -190,7 +192,10 @@ namespace Nop.Services.Tests.Payments
         /// </summary>
         public bool SupportRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -198,7 +203,10 @@ namespace Nop.Services.Tests.Payments
         /// </summary>
         public bool SupportVoid
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -207,7 +215,10 @@ namespace Nop.Services.Tests.Payments
         /// <returns>A recurring payment type of payment method</returns>
         public RecurringPaymentType RecurringPaymentType
         {
-            get { return RecurringPaymentType.NotSupported; }
+            get
+            {
+                return RecurringPaymentType.NotSupported;
+            }
         }
 
         /// <summary>
@@ -216,7 +227,10 @@ namespace Nop.Services.Tests.Payments
         /// <returns>A payment method type</returns>
         public PaymentMethodType PaymentMethodType
         {
-            get { return PaymentMethodType.Standard; }
+            get
+            {
+                return PaymentMethodType.Standard;
+            }
         }
 
         /// <summary>
@@ -224,17 +238,10 @@ namespace Nop.Services.Tests.Payments
         /// </summary>
         public bool SkipPaymentInfo
         {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// Gets a payment method description that will be displayed on checkout pages in the public store
-        /// </summary>
-        public string PaymentMethodDescription
-        {
-            //return description of this payment method to be display on "payment method" checkout step. good practice is to make it localizable
-            //for example, for a redirection payment method, description may be like this: "You will be redirected to PayPal site to complete the payment"
-            get { return string.Empty; }
+            get
+            {
+                return false;
+            }
         }
 
         #endregion

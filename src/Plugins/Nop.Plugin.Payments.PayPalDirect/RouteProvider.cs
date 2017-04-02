@@ -8,16 +8,19 @@ namespace Nop.Plugin.Payments.PayPalDirect
     {
         public void RegisterRoutes(RouteCollection routes)
         {
-            routes.MapRoute("Plugin.Payments.PayPalDirect.Webhook",
-                 "Plugins/PaymentPayPalDirect/Webhook",
-                 new { controller = "PaymentPayPalDirect", action = "WebhookEventsHandler" },
+            //IPN
+            routes.MapRoute("Plugin.Payments.PayPalDirect.IPNHandler",
+                 "Plugins/PaymentPayPalDirect/IPNHandler",
+                 new { controller = "PaymentPayPalDirect", action = "IPNHandler" },
                  new[] { "Nop.Plugin.Payments.PayPalDirect.Controllers" }
             );
         }
-
         public int Priority
         {
-            get { return 0; }
+            get
+            {
+                return 0;
+            }
         }
     }
 }

@@ -84,9 +84,6 @@ namespace Nop.Services.Affiliates
 
             affiliate.Deleted = true;
             UpdateAffiliate(affiliate);
-
-            //event notification
-            _eventPublisher.EntityDeleted(affiliate);
         }
 
         /// <summary>

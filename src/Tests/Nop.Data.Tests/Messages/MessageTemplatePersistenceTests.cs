@@ -1,4 +1,5 @@
-﻿using Nop.Tests;
+﻿using Nop.Core.Domain.Messages;
+using Nop.Tests;
 using NUnit.Framework;
 
 namespace Nop.Data.Tests.Messages
@@ -9,11 +10,33 @@ namespace Nop.Data.Tests.Messages
         [Test]
         public void Can_save_and_load_messageTemplate()
         {
-            var mt = this.GetTestMessageTemplate();
+            var mt = new MessageTemplate
+            {
+                Name = "Template1",
+                BccEmailAddresses = "Bcc",
+                Subject = "Subj",
+                Body = "Some text",
+                IsActive = true,
+                AttachedDownloadId = 3,
+                EmailAccountId = 1,
+                LimitedToStores = true,
+                DelayBeforeSend = 2,
+                DelayPeriodId = 0
+            };
 
-            var fromDb = SaveAndLoadEntity(this.GetTestMessageTemplate());
+
+            var fromDb = SaveAndLoadEntity(mt);
             fromDb.ShouldNotBeNull();
-            fromDb.PropertiesShouldEqual(mt);
+            fromDb.Name.ShouldEqual("Template1");
+            fromDb.BccEmailAddresses.ShouldEqual("Bcc");
+            fromDb.Subject.ShouldEqual("Subj");
+            fromDb.Body.ShouldEqual("Some text");
+            fromDb.IsActive.ShouldBeTrue();
+            fromDb.AttachedDownloadId.ShouldEqual(3);
+            fromDb.LimitedToStores.ShouldBeTrue();
+            fromDb.DelayBeforeSend.ShouldEqual(2);
+            fromDb.DelayPeriodId.ShouldEqual(0);
+            fromDb.EmailAccountId.ShouldEqual(1);
         }
     }
 }

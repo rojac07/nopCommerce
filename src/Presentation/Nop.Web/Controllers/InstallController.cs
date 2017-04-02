@@ -43,7 +43,7 @@ namespace Nop.Web.Controllers
         /// <summary>
         /// A value indicating whether we use MARS (Multiple Active Result Sets)
         /// </summary>
-        protected virtual bool UseMars
+        protected bool UseMars
         {
             get { return false; }
         }
@@ -54,7 +54,7 @@ namespace Nop.Web.Controllers
         /// <param name="connectionString">Connection string</param>
         /// <returns>Returns true if the database exists.</returns>
         [NonAction]
-        protected virtual bool SqlServerDatabaseExists(string connectionString)
+        protected bool SqlServerDatabaseExists(string connectionString)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace Nop.Web.Controllers
         /// </param>
         /// <returns>Error</returns>
         [NonAction]
-        protected virtual string CreateDatabase(string connectionString, string collation, int triesToConnect = 10)
+        protected string CreateDatabase(string connectionString, string collation, int triesToConnect = 10)
         {
             try
             {
@@ -143,7 +143,7 @@ namespace Nop.Web.Controllers
         /// <param name="timeout">The connection timeout</param>
         /// <returns>Connection string</returns>
         [NonAction]
-        protected virtual string CreateConnectionString(bool trustedConnection,
+        protected string CreateConnectionString(bool trustedConnection,
             string serverName, string databaseName,
             string userName, string password, int timeout = 0)
         {
@@ -172,7 +172,7 @@ namespace Nop.Web.Controllers
 
         #region Methods
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             if (DataSettingsHelper.DatabaseIsInstalled())
                 return RedirectToRoute("HomePage");
@@ -210,7 +210,7 @@ namespace Nop.Web.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Index(InstallModel model)
+        public ActionResult Index(InstallModel model)
         {
             if (DataSettingsHelper.DatabaseIsInstalled())
                 return RedirectToRoute("HomePage");
@@ -436,7 +436,7 @@ namespace Nop.Web.Controllers
             return View(model);
         }
 
-        public virtual ActionResult ChangeLanguage(string language)
+        public ActionResult ChangeLanguage(string language)
         {
             if (DataSettingsHelper.DatabaseIsInstalled())
                 return RedirectToRoute("HomePage");
@@ -447,8 +447,7 @@ namespace Nop.Web.Controllers
             return RedirectToAction("Index", "Install");
         }
 
-        [HttpPost]
-        public virtual ActionResult RestartInstall()
+        public ActionResult RestartInstall()
         {
             if (DataSettingsHelper.DatabaseIsInstalled())
                 return RedirectToRoute("HomePage");

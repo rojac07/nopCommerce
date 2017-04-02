@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Web.Mvc;
 using Nop.Web.Framework;
 using Nop.Web.Framework.Mvc;
@@ -16,8 +15,7 @@ namespace Nop.Web.Models.Order
         }
 
         public int OrderId { get; set; }
-        public string CustomOrderNumber { get; set; }
-
+        
         public IList<OrderItemModel> Items { get; set; }
         
         [AllowHtml]
@@ -33,10 +31,6 @@ namespace Nop.Web.Models.Order
         [AllowHtml]
         [NopResourceDisplayName("ReturnRequests.Comments")]
         public string Comments { get; set; }
-
-        public bool AllowFiles { get; set; }
-        [NopResourceDisplayName("ReturnRequests.UploadedFile")]
-        public Guid UploadedFileGuid { get; set; }
 
         public string Result { get; set; }
         

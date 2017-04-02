@@ -126,12 +126,11 @@ namespace Nop.Services.Localization
         /// <param name="settings">Settings</param>
         /// <param name="keySelector">Key selector</param>
         /// <param name="languageId">Language identifier</param>
-        /// <param name="storeId">Store identifier</param>
         /// <param name="returnDefaultValue">A value indicating whether to return default value (if localized is not found)</param>
         /// <param name="ensureTwoPublishedLanguages">A value indicating whether to ensure that we have at least two published languages; otherwise, load only default value</param>
         /// <returns>Localized property</returns>
         public static string GetLocalizedSetting<T>(this T settings,
-            Expression<Func<T, string>> keySelector, int languageId, int storeId,
+            Expression<Func<T, string>> keySelector, int languageId,
             bool returnDefaultValue = true, bool ensureTwoPublishedLanguages = true)
             where T : ISettings, new()
         {
@@ -140,7 +139,7 @@ namespace Nop.Services.Localization
             string key = settings.GetSettingKey(keySelector);
 
             //we do not support localized settings per store (overridden store settings)
-            var setting = settingService.GetSetting(key, storeId: storeId, loadSharedValueIfNotFound: true);
+            var setting = settingService.GetSetting(key, storeId: 0, loadSharedValueIfNotFound: false);
             if (setting == null)
                 return null;
 

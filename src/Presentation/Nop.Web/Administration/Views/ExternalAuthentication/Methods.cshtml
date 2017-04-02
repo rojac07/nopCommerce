@@ -74,8 +74,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -108,9 +107,7 @@
                                     field: "SystemName",
                                     title: "@T("Admin.Configuration.ExternalAuthenticationMethods.Configure")",
                                     width: 150,
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" },
-                                    template: '<a class="btn btn-default" href="ConfigureMethod?systemName=#=SystemName#"><i class="fa fa-cog"></i>@T("Admin.Configuration.ExternalAuthenticationMethods.Configure")</a>'
+                                    template: '<a href="ConfigureMethod?systemName=#=SystemName#">@T("Admin.Configuration.ExternalAuthenticationMethods.Configure")</a>'
                                 }, {
                                     command: {
                                         name: "edit",
@@ -121,9 +118,7 @@
                                         }
                                     },
                                     title: "@T("Admin.Common.Edit")",
-                                    width: 100,
-                                    headerAttributes: { style: "text-align:center" },
-                                    attributes: { style: "text-align:center" }
+                                        width: 150
                                     }
                                 ]
                             });

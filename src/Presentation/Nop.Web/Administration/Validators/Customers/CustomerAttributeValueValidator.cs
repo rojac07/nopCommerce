@@ -13,7 +13,7 @@ namespace Nop.Admin.Validators.Customers
         {
             RuleFor(x => x.Name).NotEmpty().WithMessage(localizationService.GetResource("Admin.Customers.CustomerAttributes.Values.Fields.Name.Required"));
 
-            SetDatabaseValidationRules<CustomerAttributeValue>(dbContext);
+            SetStringPropertiesMaxLength<CustomerAttributeValue>(dbContext);
         }
     }
 }

@@ -1,16 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Web.Mvc;
 using Nop.Admin.Extensions;
-using Nop.Admin.Helpers;
 using Nop.Admin.Models.Common;
 using Nop.Admin.Models.Customers;
 using Nop.Admin.Models.ShoppingCart;
 using Nop.Core;
-using Nop.Core.Caching;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Common;
 using Nop.Core.Domain.Customers;
@@ -92,7 +89,6 @@ namespace Nop.Admin.Controllers
         private readonly IAffiliateService _affiliateService;
         private readonly IWorkflowMessageService _workflowMessageService;
         private readonly IRewardPointService _rewardPointService;
-        private readonly ICacheManager _cacheManager;
 
         #endregion
 
@@ -139,8 +135,7 @@ namespace Nop.Admin.Controllers
             IAddressAttributeFormatter addressAttributeFormatter,
             IAffiliateService affiliateService,
             IWorkflowMessageService workflowMessageService,
-            IRewardPointService rewardPointService,
-            ICacheManager cacheManager)
+            IRewardPointService rewardPointService)
         {
             this._customerService = customerService;
             this._newsLetterSubscriptionService = newsLetterSubscriptionService;
@@ -184,7 +179,6 @@ namespace Nop.Admin.Controllers
             this._affiliateService = affiliateService;
             this._workflowMessageService = workflowMessageService;
             this._rewardPointService = rewardPointService;
-            this._cacheManager = cacheManager;
         }
 
         #endregion
@@ -291,9 +285,9 @@ namespace Nop.Admin.Controllers
             bool isInGuestsRole = customerRoles.FirstOrDefault(cr => cr.SystemName == SystemCustomerRoleNames.Guests) != null;
             bool isInRegisteredRole = customerRoles.FirstOrDefault(cr => cr.SystemName == SystemCustomerRoleNames.Registered) != null;
             if (isInGuestsRole && isInRegisteredRole)
-                return _localizationService.GetResource("Admin.Customers.Customers.GuestsAndRegisteredRolesError");
+                return "The customer cannot be in both 'Guests' and 'Registered' customer roles";
             if (!isInGuestsRole && !isInRegisteredRole)
-                return _localizationService.GetResource("Admin.Customers.Customers.AddCustomerToGuestsOrRegisteredRoleError");
+                return "Add the customer to 'Guests' or 'Registered' customer role";
 
             //no errors
             return "";
@@ -310,9 +304,15 @@ namespace Nop.Admin.Controllers
                 Text = _localizationService.GetResource("Admin.Customers.Customers.Fields.Vendor.None"),
                 Value = "0"
             });
-            var vendors = SelectListHelper.GetVendorList(_vendorService, _cacheManager, true);
-            foreach (var v in vendors)
-                model.AvailableVendors.Add(v);
+            var vendors = _vendorService.GetAllVendors(showHidden: true);
+            foreach (var vendor in vendors)
+            {
+                model.AvailableVendors.Add(new SelectListItem
+                {
+                    Text = vendor.Name,
+                    Value = vendor.Id.ToString()
+                });
+            }
         }
 
         [NonAction]
@@ -403,8 +403,11 @@ namespace Nop.Admin.Controllers
         }
 
         [NonAction]
-        protected virtual string ParseCustomCustomerAttributes( FormCollection form)
+        protected virtual string ParseCustomCustomerAttributes(Customer customer, FormCollection form)
         {
+            if (customer == null)
+                throw new ArgumentNullException("customer");
+
             if (form == null)
                 throw new ArgumentNullException("form");
 
@@ -498,11 +501,6 @@ namespace Nop.Admin.Controllers
                     model.IsTaxExempt = customer.IsTaxExempt;
                     model.Active = customer.Active;
 
-                    if (customer.RegisteredInStoreId == 0 || allStores.All(s => s.Id != customer.RegisteredInStoreId))
-                        model.RegisteredInStore = string.Empty;
-                    else
-                        model.RegisteredInStore = allStores.First(s => s.Id == customer.RegisteredInStoreId).Name;
-
                     var affiliate = _affiliateService.GetAffiliateById(customer.AffiliateId);
                     if (affiliate != null)
                     {
@@ -553,6 +551,7 @@ namespace Nop.Admin.Controllers
             }
 
             model.UsernamesEnabled = _customerSettings.UsernamesEnabled;
+            model.AllowUsersToChangeUsernames = _customerSettings.AllowUsersToChangeUsernames;
             model.AllowCustomersToSetTimeZone = _dateTimeSettings.AllowCustomersToSetTimeZone;
             foreach (var tzi in _dateTimeHelper.GetSystemTimeZones())
                 model.AvailableTimeZones.Add(new SelectListItem { Text = tzi.DisplayName, Value = tzi.Id, Selected = (tzi.Id == model.TimeZoneId) });
@@ -717,7 +716,6 @@ namespace Nop.Admin.Controllers
             model.Address.CompanyEnabled = _addressSettings.CompanyEnabled;
             model.Address.CompanyRequired = _addressSettings.CompanyRequired;
             model.Address.CountryEnabled = _addressSettings.CountryEnabled;
-            model.Address.CountryRequired = _addressSettings.CountryEnabled; //country is required when enabled
             model.Address.StateProvinceEnabled = _addressSettings.StateProvinceEnabled;
             model.Address.CityEnabled = _addressSettings.CityEnabled;
             model.Address.CityRequired = _addressSettings.CityRequired;
@@ -759,12 +757,12 @@ namespace Nop.Admin.Controllers
 
         #region Customers
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -795,12 +793,12 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CustomerList(DataSourceRequest command, CustomerListModel model,
+        public ActionResult CustomerList(DataSourceRequest command, CustomerListModel model,
             [ModelBinder(typeof(CommaSeparatedModelBinder))] int[] searchCustomerRoleIds)
         {
             //we use own own binder for searchCustomerRoleIds property 
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var searchDayOfBirth = 0;
             int searchMonthOfBirth = 0;
@@ -833,7 +831,7 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
         
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -848,7 +846,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
         [ValidateInput(false)]
-        public virtual ActionResult Create(CustomerModel model, bool continueEditing, FormCollection form)
+        public ActionResult Create(CustomerModel model, bool continueEditing, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -882,19 +880,8 @@ namespace Nop.Admin.Controllers
             // Ensure that valid email address is entered if Registered role is checked to avoid registered customers with empty email address
             if (newCustomerRoles.Any() && newCustomerRoles.FirstOrDefault(c => c.SystemName == SystemCustomerRoleNames.Registered) != null && !CommonHelper.IsValidEmail(model.Email))
             {
-                ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.ValidEmailRequiredRegisteredRole"));
-                ErrorNotification(_localizationService.GetResource("Admin.Customers.Customers.ValidEmailRequiredRegisteredRole"), false);
-            }
-
-            //custom customer attributes
-            var customerAttributesXml = ParseCustomCustomerAttributes(form);
-            if (newCustomerRoles.Any() && newCustomerRoles.FirstOrDefault(c => c.SystemName == SystemCustomerRoleNames.Registered) != null)
-            {
-                var customerAttributeWarnings = _customerAttributeParser.GetAttributeWarnings(customerAttributesXml);
-                foreach (var error in customerAttributeWarnings)
-                {
-                    ModelState.AddModelError("", error);
-                }
+                ModelState.AddModelError("", "Valid Email is required for customer to be in 'Registered' role");
+                ErrorNotification("Valid Email is required for customer to be in 'Registered' role", false);
             }
 
             if (ModelState.IsValid)
@@ -910,7 +897,6 @@ namespace Nop.Admin.Controllers
                     Active = model.Active,
                     CreatedOnUtc = DateTime.UtcNow,
                     LastActivityDateUtc = DateTime.UtcNow,
-                    RegisteredInStoreId = _storeContext.CurrentStore.Id
                 };
                 _customerService.InsertCustomer(customer);
 
@@ -943,7 +929,8 @@ namespace Nop.Admin.Controllers
                     _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Fax, model.Fax);
 
                 //custom customer attributes
-                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributesXml);
+                var customerAttributes = ParseCustomCustomerAttributes(customer, form);
+                _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributes);
 
 
                 //newsletter subscriptions
@@ -1047,7 +1034,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1065,7 +1052,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
         [ValidateInput(false)]
-        public virtual ActionResult Edit(CustomerModel model, bool continueEditing, FormCollection form)
+        public ActionResult Edit(CustomerModel model, bool continueEditing, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1091,19 +1078,8 @@ namespace Nop.Admin.Controllers
             // Ensure that valid email address is entered if Registered role is checked to avoid registered customers with empty email address
             if (newCustomerRoles.Any() && newCustomerRoles.FirstOrDefault(c => c.SystemName == SystemCustomerRoleNames.Registered) != null && !CommonHelper.IsValidEmail(model.Email))
             {
-                ModelState.AddModelError("", _localizationService.GetResource("Admin.Customers.Customers.ValidEmailRequiredRegisteredRole"));
-                ErrorNotification(_localizationService.GetResource("Admin.Customers.Customers.ValidEmailRequiredRegisteredRole"), false);
-            }
-
-            //custom customer attributes
-            var customerAttributesXml = ParseCustomCustomerAttributes(form);
-            if (newCustomerRoles.Any() && newCustomerRoles.FirstOrDefault(c => c.SystemName == SystemCustomerRoleNames.Registered) != null)
-            {
-                var customerAttributeWarnings = _customerAttributeParser.GetAttributeWarnings(customerAttributesXml);
-                foreach (var error in customerAttributeWarnings)
-                {
-                    ModelState.AddModelError("", error);
-                }
+                ModelState.AddModelError("", "Valid Email is required for customer to be in 'Registered' role");
+                ErrorNotification("Valid Email is required for customer to be in 'Registered' role", false);
             }
 
             if (ModelState.IsValid)
@@ -1122,7 +1098,7 @@ namespace Nop.Admin.Controllers
                     //email
                     if (!String.IsNullOrWhiteSpace(model.Email))
                     {
-                        _customerRegistrationService.SetEmail(customer, model.Email, false);
+                        _customerRegistrationService.SetEmail(customer, model.Email);
                     }
                     else
                     {
@@ -1130,7 +1106,7 @@ namespace Nop.Admin.Controllers
                     }
 
                     //username
-                    if (_customerSettings.UsernamesEnabled)
+                    if (_customerSettings.UsernamesEnabled && _customerSettings.AllowUsersToChangeUsernames)
                     {
                         if (!String.IsNullOrWhiteSpace(model.Username))
                         {
@@ -1198,7 +1174,8 @@ namespace Nop.Admin.Controllers
                         _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.Fax, model.Fax);
 
                     //custom customer attributes
-                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributesXml);
+                    var customerAttributes = ParseCustomCustomerAttributes(customer, form);
+                    _genericAttributeService.SaveAttribute(customer, SystemCustomerAttributeNames.CustomCustomerAttributes, customerAttributes);
 
                     //newsletter subscriptions
                     if (!String.IsNullOrEmpty(customer.Email))
@@ -1317,7 +1294,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("changepassword")]
-        public virtual ActionResult ChangePassword(CustomerModel model)
+        public ActionResult ChangePassword(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1351,7 +1328,7 @@ namespace Nop.Admin.Controllers
         
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("markVatNumberAsValid")]
-        public virtual ActionResult MarkVatNumberAsValid(CustomerModel model)
+        public ActionResult MarkVatNumberAsValid(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1370,7 +1347,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("markVatNumberAsInvalid")]
-        public virtual ActionResult MarkVatNumberAsInvalid(CustomerModel model)
+        public ActionResult MarkVatNumberAsInvalid(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1389,7 +1366,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("remove-affiliate")]
-        public virtual ActionResult RemoveAffiliate(CustomerModel model)
+        public ActionResult RemoveAffiliate(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1406,7 +1383,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1458,7 +1435,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("impersonate")]
-        public virtual ActionResult Impersonate(int id)
+        public ActionResult Impersonate(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.AllowCustomerImpersonation))
                 return AccessDeniedView();
@@ -1472,25 +1449,25 @@ namespace Nop.Admin.Controllers
             //otherwise, that user can simply impersonate as an administrator and gain additional administrative privileges
             if (!_workContext.CurrentCustomer.IsAdmin() && customer.IsAdmin())
             {
-                ErrorNotification(_localizationService.GetResource("Admin.Customers.Customers.NonAdminNotImpersonateAsAdminError"));
+                ErrorNotification("A non-admin user cannot impersonate as an administrator");
                 return RedirectToAction("Edit", customer.Id);
             }
 
             //activity log
-            _customerActivityService.InsertActivity("Impersonation.Started", _localizationService.GetResource("ActivityLog.Impersonation.Started.StoreOwner"), customer.Email, customer.Id);
-            _customerActivityService.InsertActivity(customer, "Impersonation.Started", _localizationService.GetResource("ActivityLog.Impersonation.Started.Customer"), _workContext.CurrentCustomer.Email, _workContext.CurrentCustomer.Id);
+            _customerActivityService.InsertActivity("Impersonation.Started", 
+                _localizationService.GetResource("ActivityLog.Impersonation.Started.StoreOwner"), customer.Email, customer.Id);
+            _customerActivityService.InsertActivity(customer, "Impersonation.Started",
+                _localizationService.GetResource("ActivityLog.Impersonation.Started.Customer"), _workContext.CurrentCustomer.Email, _workContext.CurrentCustomer.Id);
 
-            //ensure login is not required
-            customer.RequireReLogin = false;
-            _customerService.UpdateCustomer(customer);
-            _genericAttributeService.SaveAttribute<int?>(_workContext.CurrentCustomer, SystemCustomerAttributeNames.ImpersonatedCustomerId, customer.Id);
+            _genericAttributeService.SaveAttribute<int?>(_workContext.CurrentCustomer,
+                SystemCustomerAttributeNames.ImpersonatedCustomerId, customer.Id);
 
             return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("send-welcome-message")]
-        public virtual ActionResult SendWelcomeMessage(CustomerModel model)
+        public ActionResult SendWelcomeMessage(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1509,7 +1486,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("resend-activation-message")]
-        public virtual ActionResult ReSendActivationMessage(CustomerModel model)
+        public ActionResult ReSendActivationMessage(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1528,7 +1505,7 @@ namespace Nop.Admin.Controllers
             return RedirectToAction("Edit", new { id = customer.Id });
         }
 
-        public virtual ActionResult SendEmail(CustomerModel model)
+        public ActionResult SendEmail(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1579,7 +1556,7 @@ namespace Nop.Admin.Controllers
             return RedirectToAction("Edit", new { id = customer.Id });
         }
 
-        public virtual ActionResult SendPm(CustomerModel model)
+        public ActionResult SendPm(CustomerModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1630,31 +1607,28 @@ namespace Nop.Admin.Controllers
         #region Reward points history
 
         [HttpPost]
-        public virtual ActionResult RewardPointsHistorySelect(DataSourceRequest command, int customerId)
+        public ActionResult RewardPointsHistorySelect(DataSourceRequest command, int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(customerId);
             if (customer == null)
                 throw new ArgumentException("No customer found with the specified id");
 
-            var rewardPoints = _rewardPointService.GetRewardPointsHistory(customer.Id, true, true, command.Page - 1, command.PageSize);
+            var rewardPoints = _rewardPointService.GetRewardPointsHistory(customer.Id, true, command.Page - 1, command.PageSize);
             var gridModel = new DataSourceResult
             {
                 Data = rewardPoints.Select(rph =>
                 {
                     var store = _storeService.GetStoreById(rph.StoreId);
-                    var activatingDate = _dateTimeHelper.ConvertToUserTime(rph.CreatedOnUtc, DateTimeKind.Utc);
-
                     return new CustomerModel.RewardPointsHistoryModel
                     {
                         StoreName = store != null ? store.Name : "Unknown",
                         Points = rph.Points,
-                        PointsBalance = rph.PointsBalance.HasValue ? rph.PointsBalance.ToString()
-                            : string.Format(_localizationService.GetResource("Admin.Customers.Customers.RewardPoints.ActivatedLater"), activatingDate),
+                        PointsBalance = rph.PointsBalance,
                         Message = rph.Message,
-                        CreatedOn = activatingDate
+                        CreatedOn = _dateTimeHelper.ConvertToUserTime(rph.CreatedOnUtc, DateTimeKind.Utc)
                     };
                 }),
                 Total = rewardPoints.TotalCount
@@ -1664,7 +1638,7 @@ namespace Nop.Admin.Controllers
         }
 
         [ValidateInput(false)]
-        public virtual ActionResult RewardPointsHistoryAdd(int customerId, int storeId, int addRewardPointsValue, string addRewardPointsMessage)
+        public ActionResult RewardPointsHistoryAdd(int customerId, int storeId, int addRewardPointsValue, string addRewardPointsMessage)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1684,10 +1658,10 @@ namespace Nop.Admin.Controllers
         #region Addresses
 
         [HttpPost]
-        public virtual ActionResult AddressesSelect(int customerId, DataSourceRequest command)
+        public ActionResult AddressesSelect(int customerId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(customerId);
             if (customer == null)
@@ -1731,7 +1705,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult AddressDelete(int id, int customerId)
+        public ActionResult AddressDelete(int id, int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1752,7 +1726,7 @@ namespace Nop.Admin.Controllers
             return new NullJsonResult();
         }
         
-        public virtual ActionResult AddressCreate(int customerId)
+        public ActionResult AddressCreate(int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1770,7 +1744,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost]
         [ValidateInput(false)]
-        public virtual ActionResult AddressCreate(CustomerAddressModel model, FormCollection form)
+        public ActionResult AddressCreate(CustomerAddressModel model, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1810,7 +1784,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult AddressEdit(int addressId, int customerId)
+        public ActionResult AddressEdit(int addressId, int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1832,7 +1806,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost]
         [ValidateInput(false)]
-        public virtual ActionResult AddressEdit(CustomerAddressModel model, FormCollection form)
+        public ActionResult AddressEdit(CustomerAddressModel model, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1876,10 +1850,10 @@ namespace Nop.Admin.Controllers
         #region Orders
         
         [HttpPost]
-        public virtual ActionResult OrderList(int customerId, DataSourceRequest command)
+        public ActionResult OrderList(int customerId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var orders = _orderService.SearchOrders(customerId: customerId);
 
@@ -1899,7 +1873,6 @@ namespace Nop.Admin.Controllers
                             OrderTotal = _priceFormatter.FormatPrice(order.OrderTotal, true, false),
                             StoreName = store != null ? store.Name : "Unknown",
                             CreatedOn = _dateTimeHelper.ConvertToUserTime(order.CreatedOnUtc, DateTimeKind.Utc),
-                            CustomOrderNumber = order.CustomOrderNumber
                         };
                         return orderModel;
                     }),
@@ -1914,7 +1887,7 @@ namespace Nop.Admin.Controllers
 
         #region Reports
 
-        public virtual ActionResult Reports()
+        public ActionResult Reports()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -1942,10 +1915,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ReportBestCustomersByOrderTotalList(DataSourceRequest command, BestCustomersReportModel model)
+        public ActionResult ReportBestCustomersByOrderTotalList(DataSourceRequest command, BestCustomersReportModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             DateTime? startDateValue = (model.StartDate == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
@@ -1983,10 +1956,10 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
         [HttpPost]
-        public virtual ActionResult ReportBestCustomersByNumberOfOrdersList(DataSourceRequest command, BestCustomersReportModel model)
+        public ActionResult ReportBestCustomersByNumberOfOrdersList(DataSourceRequest command, BestCustomersReportModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             DateTime? startDateValue = (model.StartDate == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.StartDate.Value, _dateTimeHelper.CurrentTimeZone);
@@ -2025,7 +1998,7 @@ namespace Nop.Admin.Controllers
         }
 
         [ChildActionOnly]
-        public virtual ActionResult ReportRegisteredCustomers()
+        public ActionResult ReportRegisteredCustomers()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return Content("");
@@ -2034,10 +2007,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ReportRegisteredCustomersList(DataSourceRequest command)
+        public ActionResult ReportRegisteredCustomersList(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             var model = GetReportRegisteredCustomersModel();
             var gridModel = new DataSourceResult
@@ -2050,7 +2023,7 @@ namespace Nop.Admin.Controllers
         }
 
         [ChildActionOnly]
-	    public virtual ActionResult CustomerStatistics()
+	    public ActionResult CustomerStatistics()
 	    {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageOrders))
                 return Content("");
@@ -2063,7 +2036,7 @@ namespace Nop.Admin.Controllers
 	    }
 
         [AcceptVerbs(HttpVerbs.Get)]
-        public virtual ActionResult LoadCustomerStatistics(string period)
+        public ActionResult LoadCustomerStatistics(string period)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return Content("");
@@ -2074,29 +2047,30 @@ namespace Nop.Admin.Controllers
             var timeZone = _dateTimeHelper.CurrentTimeZone;
             var searchCustomerRoleIds = new[] { _customerService.GetCustomerRoleBySystemName(SystemCustomerRoleNames.Registered).Id };
 
-            var culture = new CultureInfo(_workContext.WorkingLanguage.LanguageCulture);
-
             switch (period)
             {
                 case "year":
                     //year statistics
-                    var yearAgoDt = nowDt.AddYears(-1).AddMonths(1);
-                    var searchYearDateUser = new DateTime(yearAgoDt.Year, yearAgoDt.Month, 1);
+                    var yearAgoRoundedDt = nowDt.AddYears(-1).AddMonths(1);
+                    var searchYearDateUser = new DateTime(yearAgoRoundedDt.Year, yearAgoRoundedDt.Month, 1);
                     if (!timeZone.IsInvalidTime(searchYearDateUser))
                     {
+                        DateTime searchYearDateUtc = _dateTimeHelper.ConvertToUtcTime(searchYearDateUser, timeZone);
+
                         for (int i = 0; i <= 12; i++)
                         {
                             result.Add(new
                             {
-                                date = searchYearDateUser.Date.ToString("Y", culture),
+                                date = searchYearDateUser.Date.ToString("Y"),
                                 value = _customerService.GetAllCustomers(
-                                    createdFromUtc: _dateTimeHelper.ConvertToUtcTime(searchYearDateUser, timeZone),
-                                    createdToUtc: _dateTimeHelper.ConvertToUtcTime(searchYearDateUser.AddMonths(1), timeZone),
+                                    createdFromUtc: searchYearDateUtc,
+                                    createdToUtc: searchYearDateUtc.AddMonths(1),
                                     customerRoleIds: searchCustomerRoleIds,
                                     pageIndex: 0,
                                     pageSize: 1).TotalCount.ToString()
                             });
 
+                            searchYearDateUtc = searchYearDateUtc.AddMonths(1);
                             searchYearDateUser = searchYearDateUser.AddMonths(1);
                         }
                     }
@@ -2104,23 +2078,25 @@ namespace Nop.Admin.Controllers
 
                 case "month":
                     //month statistics
-                    var monthAgoDt = nowDt.AddDays(-30);
-                    var searchMonthDateUser = new DateTime(monthAgoDt.Year, monthAgoDt.Month, monthAgoDt.Day);
+                    var searchMonthDateUser = new DateTime(nowDt.Year, nowDt.AddDays(-30).Month, nowDt.AddDays(-30).Day);
                     if (!timeZone.IsInvalidTime(searchMonthDateUser))
                     {
+                        DateTime searchMonthDateUtc = _dateTimeHelper.ConvertToUtcTime(searchMonthDateUser, timeZone);
+
                         for (int i = 0; i <= 30; i++)
                         {
                             result.Add(new
                             {
-                                date = searchMonthDateUser.Date.ToString("M", culture),
+                                date = searchMonthDateUser.Date.ToString("M"),
                                 value = _customerService.GetAllCustomers(
-                                    createdFromUtc: _dateTimeHelper.ConvertToUtcTime(searchMonthDateUser, timeZone),
-                                    createdToUtc: _dateTimeHelper.ConvertToUtcTime(searchMonthDateUser.AddDays(1), timeZone),
+                                    createdFromUtc: searchMonthDateUtc,
+                                    createdToUtc: searchMonthDateUtc.AddDays(1),
                                     customerRoleIds: searchCustomerRoleIds,
                                     pageIndex: 0,
                                     pageSize: 1).TotalCount.ToString()
                             });
 
+                            searchMonthDateUtc = searchMonthDateUtc.AddDays(1);
                             searchMonthDateUser = searchMonthDateUser.AddDays(1);
                         }
                     }
@@ -2129,23 +2105,25 @@ namespace Nop.Admin.Controllers
                 case "week":
                 default:
                     //week statistics
-                    var weekAgoDt = nowDt.AddDays(-7);
-                    var searchWeekDateUser = new DateTime(weekAgoDt.Year, weekAgoDt.Month, weekAgoDt.Day);
+                    var searchWeekDateUser = new DateTime(nowDt.Year, nowDt.AddDays(-7).Month, nowDt.AddDays(-7).Day);
                     if (!timeZone.IsInvalidTime(searchWeekDateUser))
                     {
+                        DateTime searchWeekDateUtc = _dateTimeHelper.ConvertToUtcTime(searchWeekDateUser, timeZone);
+
                         for (int i = 0; i <= 7; i++)
                         {
                             result.Add(new
                             {
-                                date = searchWeekDateUser.Date.ToString("d dddd", culture),
+                                date = searchWeekDateUser.Date.ToString("d dddd"),
                                 value = _customerService.GetAllCustomers(
-                                    createdFromUtc: _dateTimeHelper.ConvertToUtcTime(searchWeekDateUser, timeZone),
-                                    createdToUtc: _dateTimeHelper.ConvertToUtcTime(searchWeekDateUser.AddDays(1), timeZone),
+                                    createdFromUtc: searchWeekDateUtc,
+                                    createdToUtc: searchWeekDateUtc.AddDays(1),
                                     customerRoleIds: searchCustomerRoleIds,
                                     pageIndex: 0,
                                     pageSize: 1).TotalCount.ToString()
                             });
 
+                            searchWeekDateUtc = searchWeekDateUtc.AddDays(1);
                             searchWeekDateUser = searchWeekDateUser.AddDays(1);
                         }
                     }
@@ -2154,16 +2132,15 @@ namespace Nop.Admin.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
         #endregion
 
         #region Current shopping cart/ wishlist
 
         [HttpPost]
-        public virtual ActionResult GetCartList(int customerId, int cartTypeId)
+        public ActionResult GetCartList(int customerId, int cartTypeId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems.Where(x => x.ShoppingCartTypeId == cartTypeId).ToList();
@@ -2199,10 +2176,10 @@ namespace Nop.Admin.Controllers
         #region Activity log
 
         [HttpPost]
-        public virtual ActionResult ListActivityLog(DataSourceRequest command, int customerId)
+        public ActionResult ListActivityLog(DataSourceRequest command, int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             var activityLog = _customerActivityService.GetAllActivities(null, null, customerId, 0, command.Page - 1, command.PageSize);
             var gridModel = new DataSourceResult
@@ -2231,10 +2208,10 @@ namespace Nop.Admin.Controllers
         #region Back in stock subscriptions
 
         [HttpPost]
-        public virtual ActionResult BackInStockSubscriptionList(DataSourceRequest command, int customerId)
+        public ActionResult BackInStockSubscriptionList(DataSourceRequest command, int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
-                return AccessDeniedKendoGridJson();
+                return Content("");
 
             var subscriptions = _backInStockSubscriptionService.GetAllSubscriptionsByCustomerId(customerId,
                 0, command.Page - 1, command.PageSize);
@@ -2267,7 +2244,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("exportexcel-all")]
-        public virtual ActionResult ExportExcelAll(CustomerListModel model)
+        public ActionResult ExportExcelAll(CustomerListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -2305,7 +2282,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ExportExcelSelected(string selectedIds)
+        public ActionResult ExportExcelSelected(string selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -2334,7 +2311,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("exportxml-all")]
-        public virtual ActionResult ExportXmlAll(CustomerListModel model)
+        public ActionResult ExportXmlAll(CustomerListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();
@@ -2372,7 +2349,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ExportXmlSelected(string selectedIds)
+        public ActionResult ExportXmlSelected(string selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCustomers))
                 return AccessDeniedView();

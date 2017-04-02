@@ -78,12 +78,5 @@
                 }
             });
         });
-
-        $("#@Html.FieldIdFor(model => model.ZipPostalCode)").keydown(function (event) {
-            if (event.keyCode == 13) {
-                $("#estimate-shipping-button").click();
-                return false;
-            }
-        });
     });
 </script>

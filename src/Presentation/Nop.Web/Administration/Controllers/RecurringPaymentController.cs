@@ -74,7 +74,6 @@ namespace Nop.Admin.Controllers
             model.CustomerEmail = customer.IsRegistered() ? customer.Email : _localizationService.GetResource("Admin.Customers.Guest");
             model.PaymentType = _paymentService.GetRecurringPaymentType(recurringPayment.InitialOrder.PaymentMethodSystemName).GetLocalizedEnum(_localizationService, _workContext);
             model.CanCancelRecurringPayment = _orderProcessingService.CanCancelRecurringPayment(_workContext.CurrentCustomer, recurringPayment);
-            model.LastPaymentFailed = recurringPayment.LastPaymentFailed;
         }
 
         [NonAction]
@@ -96,7 +95,6 @@ namespace Nop.Admin.Controllers
             model.PaymentStatus = order.PaymentStatus.GetLocalizedEnum(_localizationService, _workContext);
             model.ShippingStatus = order.ShippingStatus.GetLocalizedEnum(_localizationService, _workContext);
             model.CreatedOn = _dateTimeHelper.ConvertToUserTime(history.CreatedOnUtc, DateTimeKind.Utc);
-            model.CustomOrderNumber = order.CustomOrderNumber;
         }
 
         #endregion
@@ -104,12 +102,12 @@ namespace Nop.Admin.Controllers
         #region Recurring payment
 
         //list
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();
@@ -118,10 +116,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult List(DataSourceRequest command)
+        public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var payments = _orderService.SearchRecurringPayments(0, 0, 0, null, command.Page - 1, command.PageSize, true);
             var gridModel = new DataSourceResult
@@ -139,7 +137,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();
@@ -156,7 +154,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
-        public virtual ActionResult Edit(RecurringPaymentModel model, bool continueEditing)
+        public ActionResult Edit(RecurringPaymentModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();
@@ -186,7 +184,7 @@ namespace Nop.Admin.Controllers
 
         //delete
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();
@@ -207,10 +205,10 @@ namespace Nop.Admin.Controllers
         #region History
 
         [HttpPost]
-        public virtual ActionResult HistoryList(int recurringPaymentId, DataSourceRequest command)
+        public ActionResult HistoryList(int recurringPaymentId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var payment = _orderService.GetRecurringPaymentById(recurringPaymentId);
             if (payment == null)
@@ -235,7 +233,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("processnextpayment")]
-        public virtual ActionResult ProcessNextPayment(int id)
+        public ActionResult ProcessNextPayment(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();
@@ -247,15 +245,11 @@ namespace Nop.Admin.Controllers
             
             try
             {
-                var errors = _orderProcessingService.ProcessNextRecurringPayment(payment);
-
+                _orderProcessingService.ProcessNextRecurringPayment(payment);
                 var model = new RecurringPaymentModel();
                 PrepareRecurringPaymentModel(model, payment);
 
-                if (errors.Any())
-                    errors.ToList().ForEach(error => ErrorNotification(error, false));
-                else
-                    SuccessNotification(_localizationService.GetResource("Admin.RecurringPayments.NextPaymentProcessed"), false);
+                SuccessNotification(_localizationService.GetResource("Admin.RecurringPayments.NextPaymentProcessed"), false);
 
                 //selected tab
                 SaveSelectedTabName(persistForTheNextRequest: false);
@@ -278,7 +272,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("cancelpayment")]
-        public virtual ActionResult CancelRecurringPayment(int id)
+        public ActionResult CancelRecurringPayment(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageRecurringPayments))
                 return AccessDeniedView();

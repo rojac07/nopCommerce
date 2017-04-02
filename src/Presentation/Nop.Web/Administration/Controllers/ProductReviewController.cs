@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 using Nop.Admin.Models.Catalog;
-using Nop.Core;
 using Nop.Core.Domain.Catalog;
 using Nop.Core.Domain.Customers;
 using Nop.Services.Catalog;
 using Nop.Services.Events;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Web.Framework.Controllers;
@@ -28,8 +26,6 @@ namespace Nop.Admin.Controllers
         private readonly IPermissionService _permissionService;
         private readonly IEventPublisher _eventPublisher;
         private readonly IStoreService _storeService;
-        private readonly ICustomerActivityService _customerActivityService;
-        private readonly IWorkContext _workContext;
 
         #endregion Fields
 
@@ -40,18 +36,14 @@ namespace Nop.Admin.Controllers
             ILocalizationService localizationService, 
             IPermissionService permissionService,
             IEventPublisher eventPublisher,
-            IStoreService storeService,
-            ICustomerActivityService customerActivityService,
-            IWorkContext workContext)
+            IStoreService storeService)
         {
             this._productService = productService;
             this._dateTimeHelper = dateTimeHelper;
             this._localizationService = localizationService;
             this._permissionService = permissionService;
             this._eventPublisher = eventPublisher;
-            this._storeService = storeService;
-            this._customerActivityService = customerActivityService;
-            this._workContext = workContext;
+            _storeService = storeService;
         }
 
         #endregion
@@ -60,7 +52,7 @@ namespace Nop.Admin.Controllers
 
         [NonAction]
         protected virtual void PrepareProductReviewModel(ProductReviewModel model,
-            ProductReview productReview, bool excludeProperties, bool formatReviewAndReplyText)
+            ProductReview productReview, bool excludeProperties, bool formatReviewText)
         {
             if (model == null)
                 throw new ArgumentNullException("model");
@@ -80,22 +72,12 @@ namespace Nop.Admin.Controllers
             if (!excludeProperties)
             {
                 model.Title = productReview.Title;
-                if (formatReviewAndReplyText)
-                {
+                if (formatReviewText)
                     model.ReviewText = Core.Html.HtmlHelper.FormatText(productReview.ReviewText, false, true, false, false, false, false);
-                    model.ReplyText = Core.Html.HtmlHelper.FormatText(productReview.ReplyText, false, true, false, false, false, false);
-                }
                 else
-                {
                     model.ReviewText = productReview.ReviewText;
-                    model.ReplyText = productReview.ReplyText;
-                }
                 model.IsApproved = productReview.IsApproved;
             }
-
-            //a vendor should have access only to his products
-            model.IsLoggedInAsVendor = _workContext.CurrentVendor != null;
-
         }
 
         #endregion
@@ -103,48 +85,29 @@ namespace Nop.Admin.Controllers
         #region Methods
 
         //list
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
 
             var model = new ProductReviewListModel();
-            //a vendor should have access only to his products
-            model.IsLoggedInAsVendor = _workContext.CurrentVendor != null;
-
             model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
             var stores = _storeService.GetAllStores().Select(st => new SelectListItem() { Text = st.Name, Value = st.Id.ToString() });
             foreach (var selectListItem in stores)
                 model.AvailableStores.Add(selectListItem);
-
-            //"approved" property
-            //0 - all
-            //1 - approved only
-            //2 - disapproved only
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.ProductReviews.List.SearchApproved.All"), Value = "0" });
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.ProductReviews.List.SearchApproved.ApprovedOnly"), Value = "1" });
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Catalog.ProductReviews.List.SearchApproved.DisapprovedOnly"), Value = "2" });
-            
             return View(model);
         }
 
         [HttpPost]
-        public virtual ActionResult List(DataSourceRequest command, ProductReviewListModel model)
+        public ActionResult List(DataSourceRequest command, ProductReviewListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
-                return AccessDeniedKendoGridJson();
-
-            //a vendor should have access only to his products
-            var vendorId = 0;
-            if (_workContext.CurrentVendor != null)
-            {
-                vendorId = _workContext.CurrentVendor.Id;
-            }
+                return AccessDeniedView();
 
             DateTime? createdOnFromValue = (model.CreatedOnFrom == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnFrom.Value, _dateTimeHelper.CurrentTimeZone);
@@ -152,15 +115,8 @@ namespace Nop.Admin.Controllers
             DateTime? createdToFromValue = (model.CreatedOnTo == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnTo.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
 
-            bool? approved = null;
-            if (model.SearchApprovedId > 0)
-                approved = model.SearchApprovedId == 1;
-
-            var productReviews = _productService.GetAllProductReviews(0, approved, 
-                createdOnFromValue, createdToFromValue, model.SearchText, 
-                model.SearchStoreId, model.SearchProductId, vendorId, 
-                command.Page - 1, command.PageSize);
-
+            var productReviews = _productService.GetAllProductReviews(0, null, 
+                createdOnFromValue, createdToFromValue, model.SearchText, model.SearchStoreId, model.SearchProductId, command.Page - 1, command.PageSize);
             var gridModel = new DataSourceResult
             {
                 Data = productReviews.Select(x =>
@@ -176,7 +132,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
@@ -186,17 +142,13 @@ namespace Nop.Admin.Controllers
                 //No product review found with the specified id
                 return RedirectToAction("List");
 
-            //a vendor should have access only to his products
-            if (_workContext.CurrentVendor != null && productReview.Product.VendorId != _workContext.CurrentVendor.Id)
-                return RedirectToAction("List");
-
             var model = new ProductReviewModel();
             PrepareProductReviewModel(model, productReview, false, false);
             return View(model);
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Edit(ProductReviewModel model, bool continueEditing)
+        public ActionResult Edit(ProductReviewModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
@@ -206,44 +158,18 @@ namespace Nop.Admin.Controllers
                 //No product review found with the specified id
                 return RedirectToAction("List");
 
-            //a vendor should have access only to his products
-            if (_workContext.CurrentVendor != null && productReview.Product.VendorId != _workContext.CurrentVendor.Id)
-                return RedirectToAction("List");
-
             if (ModelState.IsValid)
             {
-                var isLoggedInAsVendor = _workContext.CurrentVendor != null;
-
-                var previousIsApproved = productReview.IsApproved;
-                //vendor can edit "Reply text" only
-                if (!isLoggedInAsVendor)
-                {
-                    productReview.Title = model.Title;
-                    productReview.ReviewText = model.ReviewText;
-                    productReview.IsApproved = model.IsApproved;
-                }
-
-                productReview.ReplyText = model.ReplyText;
+                productReview.Title = model.Title;
+                productReview.ReviewText = model.ReviewText;
+                productReview.IsApproved = model.IsApproved;
                 _productService.UpdateProduct(productReview.Product);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditProductReview", _localizationService.GetResource("ActivityLog.EditProductReview"), productReview.Id);
-
-                //vendor can edit "Reply text" only
-                if (!isLoggedInAsVendor)
-                {
-                    //update product totals
-                    _productService.UpdateProductReviewTotals(productReview.Product);
-
-                    //raise event (only if it wasn't approved before and is approved now)
-                    if (!previousIsApproved && productReview.IsApproved)
-                        _eventPublisher.Publish(new ProductReviewApprovedEvent(productReview));
-
-                }
+                
+                //update product totals
+                _productService.UpdateProductReviewTotals(productReview.Product);
 
                 SuccessNotification(_localizationService.GetResource("Admin.Catalog.ProductReviews.Updated"));
-
-                return continueEditing ? RedirectToAction("Edit", new { id = productReview.Id }) : RedirectToAction("List");
+                return continueEditing ? RedirectToAction("Edit", new { id = productReview.Id}) : RedirectToAction("List");
             }
 
 
@@ -251,10 +177,10 @@ namespace Nop.Admin.Controllers
             PrepareProductReviewModel(model, productReview, true, false);
             return View(model);
         }
-
+        
         //delete
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
@@ -264,16 +190,8 @@ namespace Nop.Admin.Controllers
                 //No product review found with the specified id
                 return RedirectToAction("List");
 
-            //a vendor does not have access to this functionality
-            if (_workContext.CurrentVendor != null)
-                return RedirectToAction("List");
-
             var product = productReview.Product;
             _productService.DeleteProductReview(productReview);
-
-            //activity log
-            _customerActivityService.InsertActivity("DeleteProductReview", _localizationService.GetResource("ActivityLog.DeleteProductReview"), productReview.Id);
-
             //update product totals
             _productService.UpdateProductReviewTotals(product);
 
@@ -282,29 +200,26 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ApproveSelected(ICollection<int> selectedIds)
+        public ActionResult ApproveSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
 
-            //a vendor does not have access to this functionality
-            if (_workContext.CurrentVendor != null)
-                return RedirectToAction("List");
-
             if (selectedIds != null)
             {
-                //filter not approved reviews
-                var productReviews = _productService.GetProducReviewsByIds(selectedIds.ToArray()).Where(review => !review.IsApproved);
+                var productReviews = _productService.GetProducReviewsByIds(selectedIds.ToArray());
                 foreach (var productReview in productReviews)
                 {
+                    var previousIsApproved = productReview.IsApproved;
                     productReview.IsApproved = true;
                     _productService.UpdateProduct(productReview.Product);
-                    
                     //update product totals
                     _productService.UpdateProductReviewTotals(productReview.Product);
 
-                    //raise event 
-                    _eventPublisher.Publish(new ProductReviewApprovedEvent(productReview));
+
+                    //raise event (only if it wasn't approved before)
+                    if (!previousIsApproved)
+                        _eventPublisher.Publish(new ProductReviewApprovedEvent(productReview));
                 }
             }
 
@@ -312,24 +227,18 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult DisapproveSelected(ICollection<int> selectedIds)
+        public ActionResult DisapproveSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
 
-            //a vendor does not have access to this functionality
-            if (_workContext.CurrentVendor != null)
-                return RedirectToAction("List");
-
             if (selectedIds != null)
             {
-                //filter approved reviews
-                var productReviews = _productService.GetProducReviewsByIds(selectedIds.ToArray()).Where(review => review.IsApproved);
+                var productReviews = _productService.GetProducReviewsByIds(selectedIds.ToArray());
                 foreach (var productReview in productReviews)
                 {
                     productReview.IsApproved = false;
                     _productService.UpdateProduct(productReview.Product);
-
                     //update product totals
                     _productService.UpdateProductReviewTotals(productReview.Product);
                 }
@@ -339,14 +248,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult DeleteSelected(ICollection<int> selectedIds)
+        public ActionResult DeleteSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
                 return AccessDeniedView();
-
-            //a vendor does not have access to this functionality
-            if (_workContext.CurrentVendor != null)
-                return RedirectToAction("List");
 
             if (selectedIds != null)
             {
@@ -365,27 +270,16 @@ namespace Nop.Admin.Controllers
             return Json(new { Result = true });
         }
 
-        public virtual ActionResult ProductSearchAutoComplete(string term)
+        public ActionResult ProductSearchAutoComplete(string term)
         {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageProductReviews))
-                return Content("");
-
             const int searchTermMinimumLength = 3;
             if (String.IsNullOrWhiteSpace(term) || term.Length < searchTermMinimumLength)
                 return Content("");
-
-            //a vendor should have access only to his products
-            var vendorId = 0;
-            if (_workContext.CurrentVendor != null)
-            {
-                vendorId = _workContext.CurrentVendor.Id;
-            }
 
             //products
             const int productNumber = 15;
             var products = _productService.SearchProducts(
                 keywords: term,
-                vendorId: vendorId,
                 pageSize: productNumber,
                 showHidden: true);
 

@@ -5,7 +5,6 @@ using Nop.Admin.Models.Tasks;
 using Nop.Core.Domain.Tasks;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Tasks;
 using Nop.Web.Framework.Kendoui;
@@ -21,23 +20,20 @@ namespace Nop.Admin.Controllers
         private readonly IPermissionService _permissionService;
         private readonly IDateTimeHelper _dateTimeHelper;
         private readonly ILocalizationService _localizationService;
-        private readonly ICustomerActivityService _customerActivityService;
 
-        #endregion
+		#endregion
 
-        #region Constructors
+		#region Constructors
 
         public ScheduleTaskController(IScheduleTaskService scheduleTaskService, 
             IPermissionService permissionService,
-            IDateTimeHelper dateTimeHelper, ILocalizationService localizationService,
-            ICustomerActivityService customerActivityService)
-        {
+            IDateTimeHelper dateTimeHelper, ILocalizationService localizationService)
+		{
             this._scheduleTaskService = scheduleTaskService;
             this._permissionService = permissionService;
             this._dateTimeHelper = dateTimeHelper;
             this._localizationService = localizationService;
-            this._customerActivityService = customerActivityService;
-        }
+		}
 
 		#endregion 
 
@@ -64,12 +60,12 @@ namespace Nop.Admin.Controllers
 
         #region Methods
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageScheduleTasks))
                 return AccessDeniedView();
@@ -78,10 +74,10 @@ namespace Nop.Admin.Controllers
 		}
 
 		[HttpPost]
-        public virtual ActionResult List(DataSourceRequest command)
+        public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageScheduleTasks))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var models = _scheduleTaskService.GetAllTasks(true)
                 .Select(PrepareScheduleTaskModel)
@@ -96,7 +92,7 @@ namespace Nop.Admin.Controllers
 		}
 
         [HttpPost]
-        public virtual ActionResult TaskUpdate(ScheduleTaskModel model)
+        public ActionResult TaskUpdate(ScheduleTaskModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageScheduleTasks))
                 return AccessDeniedView();
@@ -116,13 +112,10 @@ namespace Nop.Admin.Controllers
             scheduleTask.StopOnError = model.StopOnError;
             _scheduleTaskService.UpdateTask(scheduleTask);
 
-            //activity log
-            _customerActivityService.InsertActivity("EditTask", _localizationService.GetResource("ActivityLog.EditTask"), scheduleTask.Id);
-
             return new NullJsonResult();
         }
 
-        public virtual ActionResult RunNow(int id)
+        public ActionResult RunNow(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageScheduleTasks))
                 return AccessDeniedView();

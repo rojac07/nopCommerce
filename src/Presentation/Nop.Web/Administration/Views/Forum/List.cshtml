@@ -55,8 +55,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 //details grid
                                 detailInit: detailInit,
@@ -79,10 +78,8 @@
                                     }, {
                                         field: "Id",
                                         title: "@T("Admin.Common.Edit")",
-                                        width: 80,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="EditForumGroup/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                        width: 100,
+                                        template: '<a href="EditForumGroup/#=Id#">@T("Admin.Common.Edit")</a>'
                                     }
                                 ]
                             });
@@ -121,8 +118,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 columns: [
                                     {
@@ -142,10 +138,8 @@
                                     }, {
                                         field: "Id",
                                         title: "@T("Admin.Common.Edit")",
-                                        width: 80,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="EditForum/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                        width: 100,
+                                        template: '<a href="EditForum/#=Id#">@T("Admin.Common.Edit")</a>'
                                     }
                                 ]
                             });

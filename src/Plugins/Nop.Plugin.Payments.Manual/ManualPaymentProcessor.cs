@@ -19,24 +19,20 @@ namespace Nop.Plugin.Payments.Manual
     {
         #region Fields
 
-        private readonly ILocalizationService _localizationService;
-        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
-        private readonly ISettingService _settingService;
         private readonly ManualPaymentSettings _manualPaymentSettings;
+        private readonly ISettingService _settingService;
+        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
 
         #endregion
 
         #region Ctor
 
-        public ManualPaymentProcessor(ILocalizationService localizationService,
-            IOrderTotalCalculationService orderTotalCalculationService,
-            ISettingService settingService,
-            ManualPaymentSettings manualPaymentSettings)
+        public ManualPaymentProcessor(ManualPaymentSettings manualPaymentSettings,
+            ISettingService settingService, IOrderTotalCalculationService orderTotalCalculationService)
         {
-            this._localizationService = localizationService;
-            this._orderTotalCalculationService = orderTotalCalculationService;
-            this._settingService = settingService;
             this._manualPaymentSettings = manualPaymentSettings;
+            this._settingService = settingService;
+            this._orderTotalCalculationService = orderTotalCalculationService;
         }
 
         #endregion
@@ -170,7 +166,7 @@ namespace Nop.Plugin.Payments.Manual
                         return result;
                     }
             }
-
+            
             return result;
         }
 
@@ -225,18 +221,11 @@ namespace Nop.Plugin.Payments.Manual
             routeValues = new RouteValueDictionary { { "Namespaces", "Nop.Plugin.Payments.Manual.Controllers" }, { "area", null } };
         }
 
-        /// <summary>
-        /// Get the type of controller
-        /// </summary>
-        /// <returns>Type</returns>
         public Type GetControllerType()
         {
             return typeof(PaymentManualController);
         }
 
-        /// <summary>
-        /// Install the plugin
-        /// </summary>
         public override void Install()
         {
             //settings
@@ -253,14 +242,11 @@ namespace Nop.Plugin.Payments.Manual
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.Manual.Fields.AdditionalFeePercentage.Hint", "Determines whether to apply a percentage additional fee to the order total. If not enabled, a fixed value is used.");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.Manual.Fields.TransactMode", "After checkout mark payment as");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.Manual.Fields.TransactMode.Hint", "Specify transaction mode.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.Manual.PaymentMethodDescription", "Pay by credit / debit card");
+            
 
             base.Install();
         }
 
-        /// <summary>
-        /// Uninstall the plugin
-        /// </summary>
         public override void Uninstall()
         {
             //settings
@@ -273,8 +259,7 @@ namespace Nop.Plugin.Payments.Manual
             this.DeletePluginLocaleResource("Plugins.Payments.Manual.Fields.AdditionalFeePercentage.Hint");
             this.DeletePluginLocaleResource("Plugins.Payments.Manual.Fields.TransactMode");
             this.DeletePluginLocaleResource("Plugins.Payments.Manual.Fields.TransactMode.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payments.Manual.PaymentMethodDescription");
-
+            
             base.Uninstall();
         }
 
@@ -287,7 +272,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public bool SupportCapture
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -295,7 +283,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public bool SupportPartiallyRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -303,7 +294,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public bool SupportRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -311,7 +305,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public bool SupportVoid
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -319,7 +316,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public RecurringPaymentType RecurringPaymentType
         {
-            get { return RecurringPaymentType.Manual; }
+            get
+            {
+                return RecurringPaymentType.Manual;
+            }
         }
 
         /// <summary>
@@ -327,7 +327,10 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public PaymentMethodType PaymentMethodType
         {
-            get { return PaymentMethodType.Standard; }
+            get
+            {
+                return PaymentMethodType.Standard;
+            }
         }
         
         /// <summary>
@@ -335,20 +338,13 @@ namespace Nop.Plugin.Payments.Manual
         /// </summary>
         public bool SkipPaymentInfo
         {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// Gets a payment method description that will be displayed on checkout pages in the public store
-        /// </summary>
-        public string PaymentMethodDescription
-        {
-            //return description of this payment method to be display on "payment method" checkout step. good practice is to make it localizable
-            //for example, for a redirection payment method, description may be like this: "You will be redirected to PayPal site to complete the payment"
-            get { return _localizationService.GetResource("Plugins.Payments.Manual.PaymentMethodDescription"); }
+            get
+            {
+                return false;
+            }
         }
 
         #endregion
-
+        
     }
 }

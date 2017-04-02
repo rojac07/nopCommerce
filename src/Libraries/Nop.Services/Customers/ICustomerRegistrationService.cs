@@ -34,8 +34,7 @@ namespace Nop.Services.Customers
         /// </summary>
         /// <param name="customer">Customer</param>
         /// <param name="newEmail">New email</param>
-        /// <param name="requireValidation">Require validation of new email address</param>
-        void SetEmail(Customer customer, string newEmail, bool requireValidation);
+        void SetEmail(Customer customer, string newEmail);
 
         /// <summary>
         /// Sets a customer username

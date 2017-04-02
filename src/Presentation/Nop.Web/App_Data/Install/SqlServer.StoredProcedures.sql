@@ -63,20 +63,6 @@ END
 GO
 
 
-CREATE FUNCTION [dbo].[nop_padright]
-(
-    @source INT, 
-    @symbol NVARCHAR(MAX), 
-    @length INT
-)
-RETURNS NVARCHAR(MAX)
-AS
-BEGIN
-    RETURN RIGHT(REPLICATE(@symbol, @length)+ RTRIM(CAST(@source AS NVARCHAR(MAX))), @length)
-END
-GO
-
-
 CREATE PROCEDURE [dbo].[ProductLoadAllPaged]
 (
 	@CategoryIds		nvarchar(MAX) = null,	--a list of category IDs (comma-separated list). e.g. 1,2,3
@@ -528,14 +514,42 @@ BEGIN
 	IF @PriceMin is not null
 	BEGIN
 		SET @sql = @sql + '
-		AND (p.Price >= ' + CAST(@PriceMin AS nvarchar(max)) + ')'
+		AND (
+				(
+					--special price (specified price and valid date range)
+					(p.SpecialPrice IS NOT NULL AND (getutcdate() BETWEEN isnull(p.SpecialPriceStartDateTimeUtc, ''1/1/1900'') AND isnull(p.SpecialPriceEndDateTimeUtc, ''1/1/2999'')))
+					AND
+					(p.SpecialPrice >= ' + CAST(@PriceMin AS nvarchar(max)) + ')
+				)
+				OR 
+				(
+					--regular price (price isnt specified or date range isnt valid)
+					(p.SpecialPrice IS NULL OR (getutcdate() NOT BETWEEN isnull(p.SpecialPriceStartDateTimeUtc, ''1/1/1900'') AND isnull(p.SpecialPriceEndDateTimeUtc, ''1/1/2999'')))
+					AND
+					(p.Price >= ' + CAST(@PriceMin AS nvarchar(max)) + ')
+				)
+			)'
 	END
 	
 	--max price
 	IF @PriceMax is not null
 	BEGIN
 		SET @sql = @sql + '
-		AND (p.Price <= ' + CAST(@PriceMax AS nvarchar(max)) + ')'
+		AND (
+				(
+					--special price (specified price and valid date range)
+					(p.SpecialPrice IS NOT NULL AND (getutcdate() BETWEEN isnull(p.SpecialPriceStartDateTimeUtc, ''1/1/1900'') AND isnull(p.SpecialPriceEndDateTimeUtc, ''1/1/2999'')))
+					AND
+					(p.SpecialPrice <= ' + CAST(@PriceMax AS nvarchar(max)) + ')
+				)
+				OR 
+				(
+					--regular price (price isnt specified or date range isnt valid)
+					(p.SpecialPrice IS NULL OR (getutcdate() NOT BETWEEN isnull(p.SpecialPriceStartDateTimeUtc, ''1/1/1900'') AND isnull(p.SpecialPriceEndDateTimeUtc, ''1/1/2999'')))
+					AND
+					(p.Price <= ' + CAST(@PriceMax AS nvarchar(max)) + ')
+				)
+			)'
 	END
 	
 	--show hidden and ACL
@@ -732,7 +746,7 @@ BEGIN
 END
 GO
 
-CREATE PROCEDURE [dbo].[FullText_IsSupported]
+CREATE PROCEDURE [FullText_IsSupported]
 AS
 BEGIN	
 	EXEC('
@@ -749,7 +763,7 @@ GO
 
 
 
-CREATE PROCEDURE [dbo].[FullText_Enable]
+CREATE PROCEDURE [FullText_Enable]
 AS
 BEGIN
 	--create catalog
@@ -781,7 +795,7 @@ GO
 
 
 
-CREATE PROCEDURE [dbo].[FullText_Disable]
+CREATE PROCEDURE [FullText_Disable]
 AS
 BEGIN
 	EXEC('
@@ -809,11 +823,10 @@ END
 GO
 
 
-CREATE PROCEDURE [dbo].[LanguagePackImport]
+CREATE PROCEDURE [LanguagePackImport]
 (
 	@LanguageId int,
-	@XmlPackage xml,
-	@UpdateExistingResources bit
+	@XmlPackage xml
 )
 AS
 BEGIN
@@ -826,27 +839,24 @@ BEGIN
 				[ResourceValue] [nvarchar](MAX) NOT NULL
 			)
 
-		INSERT INTO #LocaleStringResourceTmp (LanguageId, ResourceName, ResourceValue)
+		INSERT INTO #LocaleStringResourceTmp (LanguageID, ResourceName, ResourceValue)
 		SELECT	@LanguageId, nref.value('@Name', 'nvarchar(200)'), nref.value('Value[1]', 'nvarchar(MAX)')
 		FROM	@XmlPackage.nodes('//Language/LocaleResource') AS R(nref)
 
 		DECLARE @ResourceName nvarchar(200)
 		DECLARE @ResourceValue nvarchar(MAX)
 		DECLARE cur_localeresource CURSOR FOR
-		SELECT LanguageId, ResourceName, ResourceValue
+		SELECT LanguageID, ResourceName, ResourceValue
 		FROM #LocaleStringResourceTmp
 		OPEN cur_localeresource
 		FETCH NEXT FROM cur_localeresource INTO @LanguageId, @ResourceName, @ResourceValue
 		WHILE @@FETCH_STATUS = 0
 		BEGIN
-			IF (EXISTS (SELECT 1 FROM [LocaleStringResource] WHERE LanguageId=@LanguageId AND ResourceName=@ResourceName))
+			IF (EXISTS (SELECT 1 FROM [LocaleStringResource] WHERE LanguageID=@LanguageId AND ResourceName=@ResourceName))
 			BEGIN
-				IF (@UpdateExistingResources = 1)
-				BEGIN
-					UPDATE [LocaleStringResource]
-					SET [ResourceValue]=@ResourceValue
-					WHERE LanguageId=@LanguageId AND ResourceName=@ResourceName
-				END
+				UPDATE [LocaleStringResource]
+				SET [ResourceValue]=@ResourceValue
+				WHERE LanguageID=@LanguageId AND ResourceName=@ResourceName
 			END
 			ELSE 
 			BEGIN
@@ -876,6 +886,7 @@ END
 GO
 
 
+--new stored procedure
 CREATE PROCEDURE [dbo].[DeleteGuests]
 (
 	@OnlyWithoutShoppingCart bit = 1,
@@ -931,11 +942,11 @@ BEGIN
 	
 	--delete guests
 	DELETE [Customer]
-	WHERE [Id] IN (SELECT [CustomerId] FROM #tmp_guests)
+	WHERE [Id] IN (SELECT [CustomerID] FROM #tmp_guests)
 	
 	--delete attributes
 	DELETE [GenericAttribute]
-	WHERE ([EntityId] IN (SELECT [CustomerId] FROM #tmp_guests))
+	WHERE ([EntityID] IN (SELECT [CustomerID] FROM #tmp_guests))
 	AND
 	([KeyGroup] = N'Customer')
 	
@@ -943,83 +954,5 @@ BEGIN
 	SELECT @TotalRecordsDeleted = COUNT(1) FROM #tmp_guests
 	
 	DROP TABLE #tmp_guests
-END
-GO
-
-
-CREATE PROCEDURE [dbo].[CategoryLoadAllPaged]
-(
-    @ShowHidden         BIT = 0,
-    @Name               NVARCHAR(MAX) = NULL,
-    @StoreId            INT = 0,
-    @CustomerRoleIds	NVARCHAR(MAX) = NULL,
-    @PageIndex			INT = 0,
-	@PageSize			INT = 2147483644,
-    @TotalRecords		INT = NULL OUTPUT
-)
-AS
-BEGIN
-	SET NOCOUNT ON
-
-    --filter by customer role IDs (access control list)
-	SET @CustomerRoleIds = ISNULL(@CustomerRoleIds, '')
-	CREATE TABLE #FilteredCustomerRoleIds
-	(
-		CustomerRoleId INT NOT NULL
-	)
-	INSERT INTO #FilteredCustomerRoleIds (CustomerRoleId)
-	SELECT CAST(data AS INT) FROM [nop_splitstring_to_table](@CustomerRoleIds, ',')
-	DECLARE @FilteredCustomerRoleIdsCount INT = (SELECT COUNT(1) FROM #FilteredCustomerRoleIds)
-
-    --ordered categories
-    CREATE TABLE #OrderedCategoryIds
-	(
-		[Id] int IDENTITY (1, 1) NOT NULL,
-		[CategoryId] int NOT NULL
-	)
-    
-    --get max length of DisplayOrder and Id columns (used for padding Order column)
-    DECLARE @lengthId INT = (SELECT LEN(MAX(Id)) FROM [Category])
-    DECLARE @lengthOrder INT = (SELECT LEN(MAX(DisplayOrder)) FROM [Category])
-
-    --get category tree
-    ;WITH [CategoryTree]
-    AS (SELECT [Category].[Id] AS [Id], dbo.[nop_padright] ([Category].[DisplayOrder], '0', @lengthOrder) + '-' + dbo.[nop_padright] ([Category].[Id], '0', @lengthId) AS [Order]
-        FROM [Category] WHERE [Category].[ParentCategoryId] = 0
-        UNION ALL
-        SELECT [Category].[Id] AS [Id], [CategoryTree].[Order] + '|' + dbo.[nop_padright] ([Category].[DisplayOrder], '0', @lengthOrder) + '-' + dbo.[nop_padright] ([Category].[Id], '0', @lengthId) AS [Order]
-        FROM [Category]
-        INNER JOIN [CategoryTree] ON [CategoryTree].[Id] = [Category].[ParentCategoryId])
-    INSERT INTO #OrderedCategoryIds ([CategoryId])
-    SELECT [Category].[Id]
-    FROM [CategoryTree]
-    RIGHT JOIN [Category] ON [CategoryTree].[Id] = [Category].[Id]
-
-    --filter results
-    WHERE [Category].[Deleted] = 0
-    AND (@ShowHidden = 1 OR [Category].[Published] = 1)
-    AND (@Name IS NULL OR @Name = '' OR [Category].[Name] LIKE ('%' + @Name + '%'))
-    AND (@ShowHidden = 1 OR @FilteredCustomerRoleIdsCount  = 0 OR [Category].[SubjectToAcl] = 0
-        OR EXISTS (SELECT 1 FROM #FilteredCustomerRoleIds [roles] WHERE [roles].[CustomerRoleId] IN
-            (SELECT [acl].[CustomerRoleId] FROM [AclRecord] acl WITH (NOLOCK) WHERE [acl].[EntityId] = [Category].[Id] AND [acl].[EntityName] = 'Category')
-        )
-    )
-    AND (@StoreId = 0 OR [Category].[LimitedToStores] = 0
-        OR EXISTS (SELECT 1 FROM [StoreMapping] sm WITH (NOLOCK)
-			WHERE [sm].[EntityId] = [Category].[Id] AND [sm].[EntityName] = 'Category' AND [sm].[StoreId] = @StoreId
-		)
-    )
-    ORDER BY ISNULL([CategoryTree].[Order], 1)
-
-    --total records
-    SET @TotalRecords = @@ROWCOUNT
-
-    --paging
-    SELECT [Category].* FROM #OrderedCategoryIds AS [Result] INNER JOIN [Category] ON [Result].[CategoryId] = [Category].[Id]
-    WHERE ([Result].[Id] > @PageSize * @PageIndex AND [Result].[Id] <= @PageSize * (@PageIndex + 1))
-    ORDER BY [Result].[Id]
-
-    DROP TABLE #FilteredCustomerRoleIds
-    DROP TABLE #OrderedCategoryIds
 END
 GO

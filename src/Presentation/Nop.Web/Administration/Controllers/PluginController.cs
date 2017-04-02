@@ -17,9 +17,7 @@ using Nop.Services.Authentication.External;
 using Nop.Services.Cms;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
-using Nop.Services.Customers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Payments;
 using Nop.Services.Security;
 using Nop.Services.Shipping;
@@ -48,12 +46,9 @@ namespace Nop.Admin.Controllers
         private readonly TaxSettings _taxSettings;
         private readonly ExternalAuthenticationSettings _externalAuthenticationSettings;
         private readonly WidgetSettings _widgetSettings;
-        private readonly ICustomerActivityService _customerActivityService;
-        private readonly ICustomerService _customerService;
-        
-        #endregion
+	    #endregion
 
-        #region Ctor
+		#region Constructors
 
         public PluginController(IPluginFinder pluginFinder,
             IOfficialFeedManager officialFeedManager,
@@ -67,10 +62,8 @@ namespace Nop.Admin.Controllers
             ShippingSettings shippingSettings,
             TaxSettings taxSettings, 
             ExternalAuthenticationSettings externalAuthenticationSettings, 
-            WidgetSettings widgetSettings,
-            ICustomerActivityService customerActivityService,
-            ICustomerService customerService)
-        {
+            WidgetSettings widgetSettings)
+		{
             this._pluginFinder = pluginFinder;
             this._officialFeedManager = officialFeedManager;
             this._localizationService = localizationService;
@@ -84,9 +77,7 @@ namespace Nop.Admin.Controllers
             this._taxSettings = taxSettings;
             this._externalAuthenticationSettings = externalAuthenticationSettings;
             this._widgetSettings = widgetSettings;
-            this._customerActivityService = customerActivityService;
-            this._customerService = customerService;
-        }
+		}
 
 		#endregion 
 
@@ -94,7 +85,7 @@ namespace Nop.Admin.Controllers
 
         [NonAction]
         protected virtual PluginModel PreparePluginModel(PluginDescriptor pluginDescriptor, 
-            bool prepareLocales = true, bool prepareStores = true, bool prepareAcl = true)
+            bool prepareLocales = true, bool prepareStores = true)
         {
             var pluginModel = pluginDescriptor.ToModel();
             //logo
@@ -111,7 +102,7 @@ namespace Nop.Admin.Controllers
             if (prepareStores)
             {
                 //stores
-                pluginModel.SelectedStoreIds = pluginDescriptor.LimitedToStores;
+                pluginModel.SelectedStoreIds = pluginDescriptor.LimitedToStores.ToList();
                 var allStores = _storeService.GetAllStores();
                 foreach (var store in allStores)
                 {
@@ -124,20 +115,6 @@ namespace Nop.Admin.Controllers
                 }
             }
 
-            if (prepareAcl)
-            {
-                //acl
-                pluginModel.SelectedCustomerRoleIds = pluginDescriptor.LimitedToCustomerRoles;
-                foreach (var role in _customerService.GetAllCustomerRoles(true))
-                {
-                    pluginModel.AvailableCustomerRoles.Add(new SelectListItem
-                    {
-                        Text = role.Name,
-                        Value = role.Id.ToString(),
-                        Selected = pluginModel.SelectedCustomerRoleIds.Contains(role.Id)
-                    });
-                }
-            }
 
             //configuration URLs
             if (pluginDescriptor.Installed)
@@ -259,12 +236,12 @@ namespace Nop.Admin.Controllers
 
         #region Methods
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -279,16 +256,16 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 	    [HttpPost]
-        public virtual ActionResult ListSelect(DataSourceRequest command, PluginListModel model)
+        public ActionResult ListSelect(DataSourceRequest command, PluginListModel model)
 	    {
 	        if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
-	            return AccessDeniedKendoGridJson();
+	            return AccessDeniedView();
 
 	        var loadMode = (LoadPluginsMode) model.SearchLoadModeId;
-            var pluginDescriptors = _pluginFinder.GetPluginDescriptors(loadMode, group: model.SearchGroup).ToList();
+            var pluginDescriptors = _pluginFinder.GetPluginDescriptors(loadMode, 0, model.SearchGroup).ToList();
 	        var gridModel = new DataSourceResult
             {
-                Data = pluginDescriptors.Select(x => PreparePluginModel(x, false, false, false))
+                Data = pluginDescriptors.Select(x => PreparePluginModel(x, false, false))
                 .OrderBy(x => x.Group)
                 .ToList(),
                 Total = pluginDescriptors.Count()
@@ -299,7 +276,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ActionName("List")]
         [FormValueRequired(FormValueRequirement.StartsWith, "install-plugin-link-")]
         [ValidateInput(false)]
-        public virtual ActionResult Install(FormCollection form)
+        public ActionResult Install(FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -323,10 +300,6 @@ namespace Nop.Admin.Controllers
 
                 //install plugin
                 pluginDescriptor.Instance().Install();
-
-                //activity log
-                _customerActivityService.InsertActivity("InstallNewPlugin", _localizationService.GetResource("ActivityLog.InstallNewPlugin"), pluginDescriptor.FriendlyName);
-
                 SuccessNotification(_localizationService.GetResource("Admin.Configuration.Plugins.Installed"));
 
                 //restart application
@@ -342,7 +315,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ActionName("List")]
         [FormValueRequired(FormValueRequirement.StartsWith, "uninstall-plugin-link-")]
         [ValidateInput(false)]
-        public virtual ActionResult Uninstall(FormCollection form)
+        public ActionResult Uninstall(FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -366,10 +339,6 @@ namespace Nop.Admin.Controllers
 
                 //uninstall plugin
                 pluginDescriptor.Instance().Uninstall();
-
-                //activity log
-                _customerActivityService.InsertActivity("UninstallPlugin", _localizationService.GetResource("ActivityLog.UninstallPlugin"), pluginDescriptor.FriendlyName);
-
                 SuccessNotification(_localizationService.GetResource("Admin.Configuration.Plugins.Uninstalled"));
 
                 //restart application
@@ -385,7 +354,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("plugin-reload-grid")]
-        public virtual ActionResult ReloadList()
+        public ActionResult ReloadList()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -395,7 +364,7 @@ namespace Nop.Admin.Controllers
             return RedirectToAction("List");
         }
         
-        public virtual ActionResult ConfigureMiscPlugin(string systemName)
+        public ActionResult ConfigureMiscPlugin(string systemName)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -419,7 +388,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult EditPopup(string systemName)
+        public ActionResult EditPopup(string systemName)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -434,7 +403,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
         [HttpPost]
-        public virtual ActionResult EditPopup(string btnId, string formId, PluginModel model)
+        public ActionResult EditPopup(string btnId, string formId, PluginModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -451,10 +420,9 @@ namespace Nop.Admin.Controllers
                 pluginDescriptor.DisplayOrder = model.DisplayOrder;
                 pluginDescriptor.LimitedToStores.Clear();
                 if (model.SelectedStoreIds.Any())
-                    pluginDescriptor.LimitedToStores = model.SelectedStoreIds;
-                pluginDescriptor.LimitedToCustomerRoles.Clear();
-                if (model.SelectedCustomerRoleIds.Any())
-                    pluginDescriptor.LimitedToCustomerRoles = model.SelectedCustomerRoleIds;
+                {
+                    pluginDescriptor.LimitedToStores = model.SelectedStoreIds.ToList();
+                }
                 PluginFileParser.SavePluginDescriptionFile(pluginDescriptor);
                 //reset plugin cache
                 _pluginFinder.ReloadPlugins();
@@ -596,9 +564,6 @@ namespace Nop.Admin.Controllers
                             }
                         }
                     }
-
-                    //activity log
-                    _customerActivityService.InsertActivity("EditPlugin", _localizationService.GetResource("ActivityLog.EditPlugin"), pluginDescriptor.FriendlyName);
                 }
 
                 ViewBag.RefreshPage = true;
@@ -612,7 +577,7 @@ namespace Nop.Admin.Controllers
         }
 
         //official feed
-        public virtual ActionResult OfficialFeed()
+        public ActionResult OfficialFeed()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
                 return AccessDeniedView();
@@ -643,10 +608,10 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
         [HttpPost]
-        public virtual ActionResult OfficialFeedSelect(DataSourceRequest command, OfficialFeedListModel model)
+        public ActionResult OfficialFeedSelect(DataSourceRequest command, OfficialFeedListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManagePlugins))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var plugins = _officialFeedManager.GetAllPlugins(categoryId: model.SearchCategoryId,
                 versionId: model.SearchVersionId,

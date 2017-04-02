@@ -93,8 +93,7 @@
                         },
                         pageable: {
                             refresh: true,
-                            pageSizes: [@(gridPageSizes)],
-                            @Html.Partial("_GridPagerMessages")
+                            pageSizes: [@(gridPageSizes)]
                         },
                         editable: {
                             confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -115,9 +114,7 @@
                                 field: "Id",
                                 title: "@T("Admin.Common.View")",
                                 width: 100,
-                                headerAttributes: { style: "text-align:center" },
-                                attributes: { style: "text-align:center" },
-                                template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Customer/Edit/")#=CustomerId#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                                template: '<a href="@Url.Content("~/Admin/Customer/Edit/")#=CustomerId#">@T("Admin.Common.View")</a>'
                             }
                         ]
                     });

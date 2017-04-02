@@ -64,8 +64,7 @@
                         refresh: true,
                         numeric: false,
                         previousNext: false,
-                        info: false,
-                        @Html.Partial("_GridPagerMessages")
+                        info: false
                     },
                     editable: {
                         confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -82,10 +81,8 @@
                     }, {
                         field: "Count",
                         title: "@T("Admin.SalesReport.Incomplete.Count")",
-                        width: 100,
-                        headerAttributes: { style: "text-align:center" },
-                        attributes: { style: "text-align:center" },
-                        template: '<a class="btn btn-xs btn-default" href="#=ViewLink#"><i class="fa fa-eye"></i>#=Count# - @T("Admin.SalesReport.Incomplete.View")</a>'
+                        width: 150,
+                        template: '#=Count# - <a href="#=ViewLink#">@T("Admin.SalesReport.Incomplete.View")</a>'
                     }]
                 });
             });

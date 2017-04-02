@@ -17,13 +17,9 @@ namespace Nop.Admin.Models.Settings
         public bool DisplayDiscontinuedMessageForUnpublishedProducts { get; set; }
         public bool DisplayDiscontinuedMessageForUnpublishedProducts_OverrideForStore { get; set; }
 
-        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ShowSkuOnProductDetailsPage")]
-        public bool ShowSkuOnProductDetailsPage { get; set; }
-        public bool ShowSkuOnProductDetailsPage_OverrideForStore { get; set; }
-
-        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ShowSkuOnCatalogPages")]
-        public bool ShowSkuOnCatalogPages { get; set; }
-        public bool ShowSkuOnCatalogPages_OverrideForStore { get; set; }
+        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ShowProductSku")]
+        public bool ShowProductSku { get; set; }
+        public bool ShowProductSku_OverrideForStore { get; set; }
 
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ShowManufacturerPartNumber")]
         public bool ShowManufacturerPartNumber { get; set; }
@@ -77,10 +73,6 @@ namespace Nop.Admin.Models.Settings
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.AllowAnonymousUsersToReviewProduct")]
         public bool AllowAnonymousUsersToReviewProduct { get; set; }
         public bool AllowAnonymousUsersToReviewProduct_OverrideForStore { get; set; }
-
-        [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ProductReviewPossibleOnlyAfterPurchasing")]
-        public bool ProductReviewPossibleOnlyAfterPurchasing { get; set; }
-        public bool ProductReviewPossibleOnlyAfterPurchasing_OverrideForStore { get; set; }
 
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.NotifyStoreOwnerAboutNewProductReviews")]
         public bool NotifyStoreOwnerAboutNewProductReviews { get; set; }
@@ -225,7 +217,7 @@ namespace Nop.Admin.Models.Settings
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.ExportImportProductAttributes")]
         public bool ExportImportProductAttributes { get; set; }
         public bool ExportImportProductAttributes_OverrideForStore { get; set; }
-        
+
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.IgnoreDiscounts")]
         public bool IgnoreDiscounts { get; set; }
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.IgnoreFeaturedProducts")]
@@ -236,5 +228,6 @@ namespace Nop.Admin.Models.Settings
         public bool IgnoreStoreLimitations { get; set; }
         [NopResourceDisplayName("Admin.Configuration.Settings.Catalog.CacheProductPrices")]
         public bool CacheProductPrices { get; set; }
+
     }
 }

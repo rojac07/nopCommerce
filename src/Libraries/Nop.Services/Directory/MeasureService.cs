@@ -146,7 +146,7 @@ namespace Nop.Services.Directory
             return _cacheManager.Get(key, () =>
             {
                 var query = from md in _measureDimensionRepository.Table
-                            orderby md.DisplayOrder, md.Id
+                            orderby md.DisplayOrder
                             select md;
                 var measureDimensions = query.ToList();
                 return measureDimensions;
@@ -326,7 +326,7 @@ namespace Nop.Services.Directory
             return _cacheManager.Get(key, () =>
             {
                 var query = from mw in _measureWeightRepository.Table
-                            orderby mw.DisplayOrder, mw.Id
+                            orderby mw.DisplayOrder
                             select mw;
                 var measureWeights = query.ToList();
                 return measureWeights;

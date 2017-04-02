@@ -7,7 +7,6 @@ using Nop.Core;
 using Nop.Core.Domain.Customers;
 using Nop.Services.Customers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Web.Framework.Controllers;
 using Nop.Web.Framework.Kendoui;
@@ -25,7 +24,6 @@ namespace Nop.Admin.Controllers
         private readonly ILocalizationService _localizationService;
         private readonly IWorkContext _workContext;
         private readonly IPermissionService _permissionService;
-        private readonly ICustomerActivityService _customerActivityService;
 
         #endregion
 
@@ -36,8 +34,7 @@ namespace Nop.Admin.Controllers
             ILocalizedEntityService localizedEntityService,
             ILocalizationService localizationService,
             IWorkContext workContext,
-            IPermissionService permissionService,
-            ICustomerActivityService customerActivityService)
+            IPermissionService permissionService)
         {
             this._customerAttributeService = customerAttributeService;
             this._languageService = languageService;
@@ -45,7 +42,6 @@ namespace Nop.Admin.Controllers
             this._localizationService = localizationService;
             this._workContext = workContext;
             this._permissionService = permissionService;
-            this._customerActivityService = customerActivityService;
         }
 
         #endregion
@@ -80,17 +76,17 @@ namespace Nop.Admin.Controllers
         
         #region Customer attributes
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult ListBlock()
+        public ActionResult ListBlock()
         {
             return PartialView("ListBlock");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -103,10 +99,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult List(DataSourceRequest command)
+        public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customerAttributes = _customerAttributeService.GetAllCustomerAttributes();
             var gridModel = new DataSourceResult
@@ -123,7 +119,7 @@ namespace Nop.Admin.Controllers
         }
         
         //create
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -135,7 +131,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Create(CustomerAttributeModel model, bool continueEditing)
+        public ActionResult Create(CustomerAttributeModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -144,10 +140,6 @@ namespace Nop.Admin.Controllers
             {
                 var customerAttribute = model.ToEntity();
                 _customerAttributeService.InsertCustomerAttribute(customerAttribute);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewCustomerAttribute", _localizationService.GetResource("ActivityLog.AddNewCustomerAttribute"), customerAttribute.Id);
-
                 //locales
                 UpdateAttributeLocales(customerAttribute, model);
 
@@ -168,7 +160,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -188,7 +180,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Edit(CustomerAttributeModel model, bool continueEditing)
+        public ActionResult Edit(CustomerAttributeModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -202,10 +194,6 @@ namespace Nop.Admin.Controllers
             {
                 customerAttribute = model.ToEntity(customerAttribute);
                 _customerAttributeService.UpdateCustomerAttribute(customerAttribute);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditCustomerAttribute", _localizationService.GetResource("ActivityLog.EditCustomerAttribute"), customerAttribute.Id);
-
                 //locales
                 UpdateAttributeLocales(customerAttribute, model);
 
@@ -226,16 +214,13 @@ namespace Nop.Admin.Controllers
 
         //delete
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
 
             var customerAttribute = _customerAttributeService.GetCustomerAttributeById(id);
             _customerAttributeService.DeleteCustomerAttribute(customerAttribute);
-
-            //activity log
-            _customerActivityService.InsertActivity("DeleteCustomerAttribute", _localizationService.GetResource("ActivityLog.DeleteCustomerAttribute"), customerAttribute.Id);
 
             SuccessNotification(_localizationService.GetResource("Admin.Customers.CustomerAttributes.Deleted"));
             return RedirectToAction("List");
@@ -247,10 +232,10 @@ namespace Nop.Admin.Controllers
 
         //list
         [HttpPost]
-        public virtual ActionResult ValueList(int customerAttributeId, DataSourceRequest command)
+        public ActionResult ValueList(int customerAttributeId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var values = _customerAttributeService.GetCustomerAttributeValues(customerAttributeId);
             var gridModel = new DataSourceResult
@@ -269,7 +254,7 @@ namespace Nop.Admin.Controllers
         }
 
         //create
-        public virtual ActionResult ValueCreatePopup(int customerAttributeId)
+        public ActionResult ValueCreatePopup(int customerAttributeId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -287,7 +272,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ValueCreatePopup(string btnId, string formId, CustomerAttributeValueModel model)
+        public ActionResult ValueCreatePopup(string btnId, string formId, CustomerAttributeValueModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -308,10 +293,6 @@ namespace Nop.Admin.Controllers
                 };
 
                 _customerAttributeService.InsertCustomerAttributeValue(cav);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewCustomerAttributeValue", _localizationService.GetResource("ActivityLog.AddNewCustomerAttributeValue"), cav.Id);
-
                 UpdateValueLocales(cav, model);
 
                 ViewBag.RefreshPage = true;
@@ -325,7 +306,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult ValueEditPopup(int id)
+        public ActionResult ValueEditPopup(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -353,7 +334,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ValueEditPopup(string btnId, string formId, CustomerAttributeValueModel model)
+        public ActionResult ValueEditPopup(string btnId, string formId, CustomerAttributeValueModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -370,9 +351,6 @@ namespace Nop.Admin.Controllers
                 cav.DisplayOrder = model.DisplayOrder;
                 _customerAttributeService.UpdateCustomerAttributeValue(cav);
 
-                //activity log
-                _customerActivityService.InsertActivity("EditCustomerAttributeValue", _localizationService.GetResource("ActivityLog.EditCustomerAttributeValue"), cav.Id);
-
                 UpdateValueLocales(cav, model);
 
                 ViewBag.RefreshPage = true;
@@ -387,7 +365,7 @@ namespace Nop.Admin.Controllers
 
         //delete
         [HttpPost]
-        public virtual ActionResult ValueDelete(int id)
+        public ActionResult ValueDelete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageSettings))
                 return AccessDeniedView();
@@ -396,9 +374,6 @@ namespace Nop.Admin.Controllers
             if (cav == null)
                 throw new ArgumentException("No customer attribute value found with the specified id");
             _customerAttributeService.DeleteCustomerAttributeValue(cav);
-
-            //activity log
-            _customerActivityService.InsertActivity("DeleteCustomerAttributeValue", _localizationService.GetResource("ActivityLog.DeleteCustomerAttributeValue"), cav.Id);
 
             return new NullJsonResult();
         }

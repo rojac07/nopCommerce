@@ -26,8 +26,7 @@
 <div class="content">
     <div class="form-horizontal">
         <div class="panel-group">
-            @*hide the entire search block if no elements are displayed*@
-            <div class="panel panel-default panel-search" @(Model.AvailableStores.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+            <div class="panel panel-default panel-search">
                 <div class="panel-body">
                     <div class="row">
                         <div class="col-md-6">
@@ -86,8 +85,7 @@
                                 },
                                 pageable: {
                                     refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @Html.Partial("_GridPagerMessages")
+                                    pageSizes: [@(gridPageSizes)]
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -101,12 +99,11 @@
                                     }, {
                                         field: "LanguageName",
                                         title: "@T("Admin.ContentManagement.News.NewsItems.Fields.Language")",
-                                        width: 200
+                                        width: 200,
                                     }, {
+                                        field: "Comments",
                                         title: "@T("Admin.ContentManagement.News.NewsItems.Fields.Comments")",
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="Comments?filterByNewsItemId=#=Id#">@T("Admin.ContentManagement.News.NewsItems.Fields.Comments") - #=ApprovedComments + NotApprovedComments# (#=NotApprovedComments#)</a>'
+                                        template: '<a href="Comments?filterByNewsItemId=#=Id#">@T("Admin.ContentManagement.News.NewsItems.Fields.Comments") - #=Comments# </a>'
                                     }, {
                                         field: "StartDate",
                                         title: "@T("Admin.ContentManagement.News.NewsItems.Fields.StartDate")",
@@ -136,9 +133,7 @@
                                         field: "Id",
                                         title: "@T("Admin.Common.Edit")",
                                         width: 100,
-                                        headerAttributes: { style: "text-align:center" },
-                                        attributes: { style: "text-align:center" },
-                                        template: '<a class="btn btn-default" href="Edit/#=Id#"><i class="fa fa-pencil"></i>@T("Admin.Common.Edit")</a>'
+                                        template: '<a href="Edit/#=Id#">@T("Admin.Common.Edit")</a>'
                                     }
                                 ]
                             });

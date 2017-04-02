@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
 using Nop.Admin.Extensions;
 using Nop.Admin.Models.Messages;
 using Nop.Core.Domain.Messages;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Messages;
 using Nop.Services.Security;
 using Nop.Services.Stores;
@@ -29,7 +29,7 @@ namespace Nop.Admin.Controllers
         private readonly IStoreService _storeService;
         private readonly IStoreMappingService _storeMappingService;
         private readonly IWorkflowMessageService _workflowMessageService;
-        private readonly ICustomerActivityService _customerActivityService;
+        private readonly EmailAccountSettings _emailAccountSettings;
 
         #endregion Fields
 
@@ -45,7 +45,7 @@ namespace Nop.Admin.Controllers
             IStoreService storeService,
             IStoreMappingService storeMappingService,
             IWorkflowMessageService workflowMessageService,
-            ICustomerActivityService customerActivityService)
+            EmailAccountSettings emailAccountSettings)
         {
             this._messageTemplateService = messageTemplateService;
             this._emailAccountService = emailAccountService;
@@ -57,12 +57,26 @@ namespace Nop.Admin.Controllers
             this._storeService = storeService;
             this._storeMappingService = storeMappingService;
             this._workflowMessageService = workflowMessageService;
-            this._customerActivityService = customerActivityService;
+            this._emailAccountSettings = emailAccountSettings;
         }
 
         #endregion
         
         #region Utilities
+
+        private string FormatTokens(string[] tokens)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                string token = tokens[i];
+                sb.Append(token);
+                if (i != tokens.Length - 1)
+                    sb.Append(", ");
+            }
+
+            return sb.ToString();
+        }
 
         [NonAction]
         protected virtual void UpdateLocales(MessageTemplate mt, MessageTemplateModel model)
@@ -141,12 +155,12 @@ namespace Nop.Admin.Controllers
         
         #region Methods
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -161,10 +175,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult List(DataSourceRequest command, MessageTemplateListModel model)
+        public ActionResult List(DataSourceRequest command, MessageTemplateListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var messageTemplates = _messageTemplateService.GetAllMessageTemplates(model.SearchStoreId);
             var gridModel = new DataSourceResult
@@ -191,7 +205,7 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
 
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -204,9 +218,7 @@ namespace Nop.Admin.Controllers
             var model = messageTemplate.ToModel();
             model.SendImmediately = !model.DelayBeforeSend.HasValue;
             model.HasAttachedDownload = model.AttachedDownloadId > 0;
-            var allowedTokens = string.Join(", ", _messageTokenProvider.GetListOfAllowedTokens(messageTemplate.GetTokenGroups()));
-            model.AllowedTokens = string.Format("{0}{1}{1}{2}{1}", allowedTokens, Environment.NewLine,
-                _localizationService.GetResource("Admin.ContentManagement.MessageTemplates.Tokens.ConditionalStatement"));
+            model.AllowedTokens = FormatTokens(_messageTokenProvider.GetListOfAllowedTokens());
             //available email accounts
             foreach (var ea in _emailAccountService.GetAllEmailAccounts())
                 model.AvailableEmailAccounts.Add(new SelectListItem { Text = ea.DisplayName, Value = ea.Id.ToString() });
@@ -240,7 +252,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
-        public virtual ActionResult Edit(MessageTemplateModel model, bool continueEditing)
+        public ActionResult Edit(MessageTemplateModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -259,10 +271,6 @@ namespace Nop.Admin.Controllers
                 if (model.SendImmediately)
                     messageTemplate.DelayBeforeSend = null;
                 _messageTemplateService.UpdateMessageTemplate(messageTemplate);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditMessageTemplate", _localizationService.GetResource("ActivityLog.EditMessageTemplate"), messageTemplate.Id);
-
                 //Stores
                 SaveStoreMappings(messageTemplate, model);
                 //locales
@@ -280,9 +288,7 @@ namespace Nop.Admin.Controllers
 
             //If we got this far, something failed, redisplay form
             model.HasAttachedDownload = model.AttachedDownloadId > 0;
-            var allowedTokens = string.Join(", ", _messageTokenProvider.GetListOfAllowedTokens(messageTemplate.GetTokenGroups()));
-            model.AllowedTokens = string.Format("{0}{1}{1}{2}{1}", allowedTokens, Environment.NewLine,
-                _localizationService.GetResource("Admin.ContentManagement.MessageTemplates.Tokens.ConditionalStatement"));
+            model.AllowedTokens = FormatTokens(_messageTokenProvider.GetListOfAllowedTokens());
             //available email accounts
             foreach (var ea in _emailAccountService.GetAllEmailAccounts())
                 model.AvailableEmailAccounts.Add(new SelectListItem { Text = ea.DisplayName, Value = ea.Id.ToString() });
@@ -309,7 +315,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -320,17 +326,14 @@ namespace Nop.Admin.Controllers
                 return RedirectToAction("List");
 
             _messageTemplateService.DeleteMessageTemplate(messageTemplate);
-
-            //activity log
-            _customerActivityService.InsertActivity("DeleteMessageTemplate", _localizationService.GetResource("ActivityLog.DeleteMessageTemplate"), messageTemplate.Id);
-
+            
             SuccessNotification(_localizationService.GetResource("Admin.ContentManagement.MessageTemplates.Deleted"));
             return RedirectToAction("List");
         }
 
         [HttpPost, ActionName("Edit")]
         [FormValueRequired("message-template-copy")]
-        public virtual ActionResult CopyTemplate(MessageTemplateModel model)
+        public ActionResult CopyTemplate(MessageTemplateModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -343,7 +346,7 @@ namespace Nop.Admin.Controllers
             try
             {
                 var newMessageTemplate = _messageTemplateService.CopyMessageTemplate(messageTemplate);
-                SuccessNotification(_localizationService.GetResource("Admin.ContentManagement.MessageTemplates.Copied"));
+                SuccessNotification("The message template has been copied successfully");
                 return RedirectToAction("Edit", new { id = newMessageTemplate.Id });
             }
             catch (Exception exc)
@@ -353,7 +356,7 @@ namespace Nop.Admin.Controllers
             }
         }
 
-        public virtual ActionResult TestTemplate(int id, int languageId = 0)
+        public ActionResult TestTemplate(int id, int languageId = 0)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -368,11 +371,14 @@ namespace Nop.Admin.Controllers
                 Id = messageTemplate.Id,
                 LanguageId = languageId
             };
-
-            //filter tokens to the current template
+            var tokens = _messageTokenProvider.GetListOfAllowedTokens().Distinct().ToList();
+            //filter them to the current template
             var subject = messageTemplate.GetLocalized(mt => mt.Subject, languageId);
             var body = messageTemplate.GetLocalized(mt => mt.Body, languageId);
-            model.Tokens = _messageTokenProvider.GetListOfAllowedTokens().Where(x => subject.Contains(x) || body.Contains(x)).ToList();
+            //subject = messageTemplate.Subject;
+            //body = messageTemplate.Body;
+            tokens = tokens.Where(x => subject.Contains(x) || body.Contains(x)).ToList();
+            model.Tokens = tokens;
 
             return View(model);
         }
@@ -380,7 +386,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ActionName("TestTemplate")]
         [FormValueRequired("send-test")]
         [ValidateInput(false)]
-        public virtual ActionResult TestTemplate(TestMessageTemplateModel model, FormCollection form)
+        public ActionResult TestTemplate(TestMessageTemplateModel model, FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageTemplates))
                 return AccessDeniedView();
@@ -395,22 +401,7 @@ namespace Nop.Admin.Controllers
                 if (formKey.StartsWith("token_", StringComparison.InvariantCultureIgnoreCase))
                 {
                     var tokenKey = formKey.Substring("token_".Length).Replace("%", "");
-                    var stringValue = form[formKey];
-
-                    //try get non-string value
-                    object tokenValue;
-                    bool boolValue;
-                    int intValue;
-                    decimal decimalValue;
-                    if (bool.TryParse(stringValue, out boolValue))
-                        tokenValue = boolValue;
-                    else if (int.TryParse(stringValue, out intValue))
-                        tokenValue = intValue;
-                    else if (decimal.TryParse(stringValue, out decimalValue))
-                        tokenValue = decimalValue;
-                    else
-                        tokenValue = stringValue;
-
+                    var tokenValue = form[formKey];
                     tokens.Add(new Token(tokenKey, tokenValue));
                 }
 

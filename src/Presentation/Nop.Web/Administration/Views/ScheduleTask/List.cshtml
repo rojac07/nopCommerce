@@ -29,9 +29,6 @@
             <div class="panel panel-default">
                 <div class="panel-body">
                     <p>
-                        @T("Admin.System.ScheduleTasks.24days")
-                    </p>
-                    <p>
                         <strong>@T("Admin.System.ScheduleTasks.RestartApplication")</strong>
                     </p>
                     <div id="schedule-tasks-grid"></div>
@@ -86,8 +83,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 editable: {
                                     confirmation: "@T("Admin.Common.DeleteConfirmation")",

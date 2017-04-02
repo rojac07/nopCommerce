@@ -1,4 +1,5 @@
-﻿using Nop.Tests;
+﻿using Nop.Core.Domain.Configuration;
+using Nop.Tests;
 using NUnit.Framework;
 
 namespace Nop.Data.Tests.Configuration
@@ -9,11 +10,18 @@ namespace Nop.Data.Tests.Configuration
         [Test]
         public void Can_save_and_load_setting()
         {
-            var setting = this.GetTestSetting();
+            var setting = new Setting
+            {
+                Name = "Setting1",
+                Value = "Value1",
+                StoreId = 1,
+            };
 
-            var fromDb = SaveAndLoadEntity(this.GetTestSetting());
+            var fromDb = SaveAndLoadEntity(setting);
             fromDb.ShouldNotBeNull();
-            fromDb.PropertiesShouldEqual(setting);
+            fromDb.Name.ShouldEqual("Setting1");
+            fromDb.Value.ShouldEqual("Value1");
+            fromDb.StoreId.ShouldEqual(1);
         }
     }
 }

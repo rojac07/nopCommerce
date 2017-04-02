@@ -21,9 +21,8 @@ namespace Nop.Services.Catalog
         /// Get product attribute values
         /// </summary>
         /// <param name="attributesXml">Attributes in XML format</param>
-        /// <param name="productAttributeMappingId">Product attribute mapping identifier; pass 0 to load all values</param>
         /// <returns>Product attribute values</returns>
-        IList<ProductAttributeValue> ParseProductAttributeValues(string attributesXml, int productAttributeMappingId = 0);
+        IList<ProductAttributeValue> ParseProductAttributeValues(string attributesXml);
 
         /// <summary>
         /// Gets selected product attribute values
@@ -39,9 +38,8 @@ namespace Nop.Services.Catalog
         /// <param name="attributesXml">Attributes in XML format</param>
         /// <param name="productAttributeMapping">Product attribute mapping</param>
         /// <param name="value">Value</param>
-        /// <param name="quantity">Quantity (used with AttributeValueType.AssociatedToProduct to specify the quantity entered by the customer)</param>
         /// <returns>Updated result (XML format)</returns>
-        string AddProductAttribute(string attributesXml, ProductAttributeMapping productAttributeMapping, string value, int? quantity = null);
+        string AddProductAttribute(string attributesXml, ProductAttributeMapping productAttributeMapping, string value);
 
         /// <summary>
         /// Remove an attribute
@@ -57,9 +55,8 @@ namespace Nop.Services.Catalog
         /// <param name="attributesXml1">The attributes of the first product</param>
         /// <param name="attributesXml2">The attributes of the second product</param>
         /// <param name="ignoreNonCombinableAttributes">A value indicating whether we should ignore non-combinable attributes</param>
-        /// <param name="ignoreQuantity">A value indicating whether we should ignore the quantity of attribute value entered by the customer</param>
         /// <returns>Result</returns>
-        bool AreProductAttributesEqual(string attributesXml1, string attributesXml2, bool ignoreNonCombinableAttributes, bool ignoreQuantity = true);
+        bool AreProductAttributesEqual(string attributesXml1, string attributesXml2, bool ignoreNonCombinableAttributes);
 
         /// <summary>
         /// Check whether condition of some attribute is met (if specified). Return "null" if not condition is specified

@@ -10,7 +10,7 @@ namespace Nop.Core
         {
             get
             {
-                return "4.00";
+                return "3.80";
             }
         }
     }

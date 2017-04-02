@@ -16,7 +16,7 @@ namespace Nop.Admin.Validators.Messages
             
             RuleFor(x => x.DisplayName).NotEmpty();
 
-            SetDatabaseValidationRules<EmailAccount>(dbContext);
+            SetStringPropertiesMaxLength<EmailAccount>(dbContext);
         }
     }
 }

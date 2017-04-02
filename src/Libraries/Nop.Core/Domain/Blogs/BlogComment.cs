@@ -1,6 +1,5 @@
 using System;
 using Nop.Core.Domain.Customers;
-using Nop.Core.Domain.Stores;
 
 namespace Nop.Core.Domain.Blogs
 {
@@ -18,16 +17,6 @@ namespace Nop.Core.Domain.Blogs
         /// Gets or sets the comment text
         /// </summary>
         public string CommentText { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether the comment is approved
-        /// </summary>
-        public bool IsApproved { get; set; }
-
-        /// <summary>
-        /// Gets or sets the store identifier
-        /// </summary>
-        public int StoreId { get; set; }
 
         /// <summary>
         /// Gets or sets the blog post identifier
@@ -48,10 +37,5 @@ namespace Nop.Core.Domain.Blogs
         /// Gets or sets the blog post
         /// </summary>
         public virtual BlogPost BlogPost { get; set; }
-
-        /// <summary>
-        /// Gets or sets the store
-        /// </summary>
-        public virtual Store Store { get; set; }
     }
 }

@@ -193,28 +193,26 @@ namespace Nop.Web.Framework
                 //check whether request is made by a search engine
                 //in this case return built-in customer record for search engines 
                 //or comment the following two lines of code in order to disable this functionality
-                if (customer == null || customer.Deleted || !customer.Active || customer.RequireReLogin)
+                if (customer == null || customer.Deleted || !customer.Active)
                 {
                     if (_userAgentHelper.IsSearchEngine())
-                    {
                         customer = _customerService.GetCustomerBySystemName(SystemCustomerNames.SearchEngine);
-                    }
                 }
 
                 //registered user
-                if (customer == null || customer.Deleted || !customer.Active || customer.RequireReLogin)
+                if (customer == null || customer.Deleted || !customer.Active)
                 {
                     customer = _authenticationService.GetAuthenticatedCustomer();
                 }
 
                 //impersonate user if required (currently used for 'phone order' support)
-                if (customer != null && !customer.Deleted && customer.Active && !customer.RequireReLogin)
+                if (customer != null && !customer.Deleted && customer.Active)
                 {
                     var impersonatedCustomerId = customer.GetAttribute<int?>(SystemCustomerAttributeNames.ImpersonatedCustomerId);
                     if (impersonatedCustomerId.HasValue && impersonatedCustomerId.Value > 0)
                     {
                         var impersonatedCustomer = _customerService.GetCustomerById(impersonatedCustomerId.Value);
-                        if (impersonatedCustomer != null && !impersonatedCustomer.Deleted && impersonatedCustomer.Active && !impersonatedCustomer.RequireReLogin)
+                        if (impersonatedCustomer != null && !impersonatedCustomer.Deleted && impersonatedCustomer.Active)
                         {
                             //set impersonated customer
                             _originalCustomerIfImpersonated = customer;
@@ -224,7 +222,7 @@ namespace Nop.Web.Framework
                 }
 
                 //load guest customer
-                if (customer == null || customer.Deleted || !customer.Active || customer.RequireReLogin)
+                if (customer == null || customer.Deleted || !customer.Active)
                 {
                     var customerCookie = GetCustomerCookie();
                     if (customerCookie != null && !String.IsNullOrEmpty(customerCookie.Value))
@@ -242,14 +240,14 @@ namespace Nop.Web.Framework
                 }
 
                 //create guest if not exists
-                if (customer == null || customer.Deleted || !customer.Active || customer.RequireReLogin)
+                if (customer == null || customer.Deleted || !customer.Active)
                 {
                     customer = _customerService.InsertGuestCustomer();
                 }
 
 
                 //validation
-                if (!customer.Deleted && customer.Active && !customer.RequireReLogin)
+                if (!customer.Deleted && customer.Active)
                 {
                     SetCustomerCookie(customer.CustomerGuid);
                     _cachedCustomer = customer;

@@ -22,7 +22,7 @@ namespace Nop.Services.ExportImport.Help
         /// Ctor
         /// </summary>
         /// <param name="properties">All acsess properties</param>
-        public PropertyManager(IEnumerable<PropertyByName<T>> properties)
+        public PropertyManager(PropertyByName<T>[] properties)
         {
             _properties = new Dictionary<string, PropertyByName<T>>();
 
@@ -71,12 +71,10 @@ namespace Nop.Services.ExportImport.Help
         /// <summary>
         /// Write object data to XLSX worksheet
         /// </summary>
-        /// <param name="worksheet">Data worksheet</param>
+        /// <param name="worksheet">worksheet</param>
         /// <param name="row">Row index</param>
-        /// <param name="exportImportUseDropdownlistsForAssociatedEntities">Indicating whether need create dropdown list for export</param>
         /// <param name="cellOffset">Cell offset</param>
-        /// <param name="fWorksheet">Filters worksheet</param>
-        public void WriteToXlsx(ExcelWorksheet worksheet, int row, bool exportImportUseDropdownlistsForAssociatedEntities, int cellOffset = 0, ExcelWorksheet fWorksheet=null)
+        public void WriteToXlsx(ExcelWorksheet worksheet, int row, int cellOffset = 0)
         {
             if (CurrentObject == null)
                 return;
@@ -93,30 +91,15 @@ namespace Nop.Services.ExportImport.Help
                         continue;
                     }
 
-                    cell.Value = prop.GetItemText(prop.GetProperty(CurrentObject));
-
-                    if(!exportImportUseDropdownlistsForAssociatedEntities)
-                        continue;
-
                     var validator = cell.DataValidation.AddListDataValidation();
-                    
+
+                    cell.Value = prop.GetItemText(prop.GetProperty(CurrentObject));
                     validator.AllowBlank = prop.AllowBlank;
 
-                    if(fWorksheet == null)
-                        continue;
-
-                    var fRow = 1;
-                    foreach (var dropDownElement in dropDownElements)
+                    foreach (var enumItem in dropDownElements)
                     {
-                        var fCell = fWorksheet.Cells[fRow++, prop.PropertyOrderPosition];
-
-                        if (fCell.Value != null && fCell.Value.ToString() == dropDownElement)
-                            break;
-                        
-                        fCell.Value = dropDownElement;
+                        validator.Formula.Values.Add(enumItem);
                     }
-
-                    validator.Formula.ExcelFormula = string.Format("{0}!{1}:{2}", fWorksheet.Name, fWorksheet.Cells[1, prop.PropertyOrderPosition].Address, fWorksheet.Cells[dropDownElements.Length, prop.PropertyOrderPosition].Address);
                 }
                 else
                 {

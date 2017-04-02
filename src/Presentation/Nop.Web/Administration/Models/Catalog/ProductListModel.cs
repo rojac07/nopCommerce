@@ -44,8 +44,6 @@ namespace Nop.Admin.Models.Catalog
 
         public bool IsLoggedInAsVendor { get; set; }
 
-        public bool AllowVendorsToImportProducts { get; set; }
-
         public IList<SelectListItem> AvailableCategories { get; set; }
         public IList<SelectListItem> AvailableManufacturers { get; set; }
         public IList<SelectListItem> AvailableStores { get; set; }

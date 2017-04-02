@@ -60,7 +60,7 @@ namespace Nop.Admin.Controllers
         #region Methods
 
         //shopping carts
-        public virtual ActionResult CurrentCarts()
+        public ActionResult CurrentCarts()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
                 return AccessDeniedView();
@@ -69,10 +69,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CurrentCarts(DataSourceRequest command)
+        public ActionResult CurrentCarts(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customers = _customerService.GetAllCustomers(
                 loadOnlyWithShoppingCart: true,
@@ -95,10 +95,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult GetCartDetails(int customerId)
+        public ActionResult GetCartDetails(int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems.Where(x => x.ShoppingCartType == ShoppingCartType.ShoppingCart).ToList();
@@ -134,7 +134,7 @@ namespace Nop.Admin.Controllers
 
 
         //wishlists
-        public virtual ActionResult CurrentWishlists()
+        public ActionResult CurrentWishlists()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
                 return AccessDeniedView();
@@ -143,10 +143,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CurrentWishlists(DataSourceRequest command)
+        public ActionResult CurrentWishlists(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customers = _customerService.GetAllCustomers(
                 loadOnlyWithShoppingCart: true,
@@ -169,10 +169,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult GetWishlistDetails(int customerId)
+        public ActionResult GetWishlistDetails(int customerId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrentCarts))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var customer = _customerService.GetCustomerById(customerId);
             var cart = customer.ShoppingCartItems.Where(x => x.ShoppingCartType == ShoppingCartType.Wishlist).ToList();

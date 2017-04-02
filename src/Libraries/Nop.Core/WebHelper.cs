@@ -120,45 +120,38 @@ namespace Nop.Core
                 return string.Empty;
 
             var result = "";
-            try
+            if (_httpContext.Request.Headers != null)
             {
-                if (_httpContext.Request.Headers != null)
+                //The X-Forwarded-For (XFF) HTTP header field is a de facto standard
+                //for identifying the originating IP address of a client
+                //connecting to a web server through an HTTP proxy or load balancer.
+                var forwardedHttpHeader = "X-FORWARDED-FOR";
+                if (!String.IsNullOrEmpty(ConfigurationManager.AppSettings["ForwardedHTTPheader"]))
                 {
-                    //The X-Forwarded-For (XFF) HTTP header field is a de facto standard
-                    //for identifying the originating IP address of a client
-                    //connecting to a web server through an HTTP proxy or load balancer.
-                    var forwardedHttpHeader = "X-FORWARDED-FOR";
-                    if (!String.IsNullOrEmpty(ConfigurationManager.AppSettings["ForwardedHTTPheader"]))
-                    {
-                        //but in some cases server use other HTTP header
-                        //in these cases an administrator can specify a custom Forwarded HTTP header
-                        //e.g. CF-Connecting-IP, X-FORWARDED-PROTO, etc
-                        forwardedHttpHeader = ConfigurationManager.AppSettings["ForwardedHTTPheader"];
-                    }
-
-                    //it's used for identifying the originating IP address of a client connecting to a web server
-                    //through an HTTP proxy or load balancer. 
-                    string xff = _httpContext.Request.Headers.AllKeys
-                        .Where(x => forwardedHttpHeader.Equals(x, StringComparison.InvariantCultureIgnoreCase))
-                        .Select(k => _httpContext.Request.Headers[k])
-                        .FirstOrDefault();
-
-                    //if you want to exclude private IP addresses, then see http://stackoverflow.com/questions/2577496/how-can-i-get-the-clients-ip-address-in-asp-net-mvc
-                    if (!String.IsNullOrEmpty(xff))
-                    {
-                        string lastIp = xff.Split(new[] { ',' }).FirstOrDefault();
-                        result = lastIp;
-                    }
+                    //but in some cases server use other HTTP header
+                    //in these cases an administrator can specify a custom Forwarded HTTP header
+                    //e.g. CF-Connecting-IP, X-FORWARDED-PROTO, etc
+                    forwardedHttpHeader = ConfigurationManager.AppSettings["ForwardedHTTPheader"];
                 }
 
-                if (String.IsNullOrEmpty(result) && _httpContext.Request.UserHostAddress != null)
+                //it's used for identifying the originating IP address of a client connecting to a web server
+                //through an HTTP proxy or load balancer. 
+                string xff = _httpContext.Request.Headers.AllKeys
+                    .Where(x => forwardedHttpHeader.Equals(x, StringComparison.InvariantCultureIgnoreCase))
+                    .Select(k => _httpContext.Request.Headers[k])
+                    .FirstOrDefault();
+
+                //if you want to exclude private IP addresses, then see http://stackoverflow.com/questions/2577496/how-can-i-get-the-clients-ip-address-in-asp-net-mvc
+                if (!String.IsNullOrEmpty(xff))
                 {
-                    result = _httpContext.Request.UserHostAddress;
+                    string lastIp = xff.Split(new[] { ',' }).FirstOrDefault();
+                    result = lastIp;
                 }
             }
-            catch 
+
+            if (String.IsNullOrEmpty(result) && _httpContext.Request.UserHostAddress != null)
             {
-                return result;
+                result = _httpContext.Request.UserHostAddress;
             }
 
             //some validation
@@ -194,16 +187,26 @@ namespace Nop.Core
         /// <returns>Page name</returns>
         public virtual string GetThisPageUrl(bool includeQueryString, bool useSsl)
         {
+            string url = string.Empty;
             if (!IsRequestAvailable(_httpContext))
-                return string.Empty;
-            
-            //get the host considering using SSL
-            var url = GetStoreHost(useSsl).TrimEnd('/');
+                return url;
 
-            //get full URL with or without query string
-            url += includeQueryString ? _httpContext.Request.RawUrl : _httpContext.Request.Path;
-
-            return url.ToLowerInvariant();
+            if (includeQueryString)
+            {
+                string storeHost = GetStoreHost(useSsl);
+                if (storeHost.EndsWith("/"))
+                    storeHost = storeHost.Substring(0, storeHost.Length - 1);
+                url = storeHost + _httpContext.Request.RawUrl;
+            }
+            else
+            {
+                if (_httpContext.Request.Url != null)
+                {
+                    url = _httpContext.Request.Url.GetLeftPart(UriPartial.Path);
+                }
+            }
+            url = url.ToLowerInvariant();
+            return url;
         }
 
         /// <summary>

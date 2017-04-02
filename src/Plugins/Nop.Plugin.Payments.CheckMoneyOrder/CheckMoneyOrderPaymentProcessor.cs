@@ -18,25 +18,19 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
     public class CheckMoneyOrderPaymentProcessor : BasePlugin, IPaymentMethod
     {
         #region Fields
-
         private readonly CheckMoneyOrderPaymentSettings _checkMoneyOrderPaymentSettings;
-        private readonly ILocalizationService _localizationService;
-        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly ISettingService _settingService;
-        
+        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         #endregion
 
         #region Ctor
 
         public CheckMoneyOrderPaymentProcessor(CheckMoneyOrderPaymentSettings checkMoneyOrderPaymentSettings,
-            ILocalizationService localizationService,
-            IOrderTotalCalculationService orderTotalCalculationService,
-            ISettingService settingService)
+            ISettingService settingService, IOrderTotalCalculationService orderTotalCalculationService)
         {
             this._checkMoneyOrderPaymentSettings = checkMoneyOrderPaymentSettings;
-            this._localizationService = localizationService;
-            this._orderTotalCalculationService = orderTotalCalculationService;
             this._settingService = settingService;
+            this._orderTotalCalculationService = orderTotalCalculationService;
         }
 
         #endregion
@@ -193,18 +187,11 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
             routeValues = new RouteValueDictionary { { "Namespaces", "Nop.Plugin.Payments.CheckMoneyOrder.Controllers" }, { "area", null } };
         }
 
-        /// <summary>
-        /// Get the type of controller
-        /// </summary>
-        /// <returns>Type</returns>
         public Type GetControllerType()
         {
             return typeof(PaymentCheckMoneyOrderController);
         }
 
-        /// <summary>
-        /// Install the plugin
-        /// </summary>
         public override void Install()
         {
             //settings
@@ -215,35 +202,31 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
             _settingService.SaveSetting(settings);
 
             //locales
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText", "Description");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText.Hint", "Enter info that will be shown to customers during checkout");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFee", "Additional fee");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFee.Hint", "The additional fee.");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFeePercentage", "Additional fee. Use percentage");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFeePercentage.Hint", "Determines whether to apply a percentage additional fee to the order total. If not enabled, a fixed value is used.");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText", "Description");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText.Hint", "Enter info that will be shown to customers during checkout");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.PaymentMethodDescription", "Pay by cheque or money order");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.ShippableProductRequired", "Shippable product required");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.ShippableProductRequired.Hint", "An option indicating whether shippable products are required in order to display this payment method during checkout.");
 
+            
             base.Install();
         }
-
-        /// <summary>
-        /// Uninstall the plugin
-        /// </summary>
+        
         public override void Uninstall()
         {
             //settings
             _settingService.DeleteSetting<CheckMoneyOrderPaymentSettings>();
 
             //locales
+            this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText");
+            this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText.Hint");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFee");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFee.Hint");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFeePercentage");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.AdditionalFeePercentage.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText");
-            this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.DescriptionText.Hint");
-            this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.PaymentMethodDescription");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.ShippableProductRequired");
             this.DeletePluginLocaleResource("Plugins.Payment.CheckMoneyOrder.ShippableProductRequired.Hint");
             
@@ -259,7 +242,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public bool SupportCapture
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -267,7 +253,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public bool SupportPartiallyRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -275,7 +264,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public bool SupportRefund
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -283,7 +275,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public bool SupportVoid
         {
-            get { return false; }
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -291,7 +286,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public RecurringPaymentType RecurringPaymentType
         {
-            get { return RecurringPaymentType.NotSupported; }
+            get
+            {
+                return RecurringPaymentType.NotSupported;
+            }
         }
 
         /// <summary>
@@ -299,7 +297,10 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public PaymentMethodType PaymentMethodType
         {
-            get { return PaymentMethodType.Standard; }
+            get
+            {
+                return PaymentMethodType.Standard;
+            }
         }
 
         /// <summary>
@@ -307,20 +308,13 @@ namespace Nop.Plugin.Payments.CheckMoneyOrder
         /// </summary>
         public bool SkipPaymentInfo
         {
-            get { return false; }
-        }
-
-        /// <summary>
-        /// Gets a payment method description that will be displayed on checkout pages in the public store
-        /// </summary>
-        public string PaymentMethodDescription
-        {
-            //return description of this payment method to be display on "payment method" checkout step. good practice is to make it localizable
-            //for example, for a redirection payment method, description may be like this: "You will be redirected to PayPal site to complete the payment"
-            get { return _localizationService.GetResource("Plugins.Payment.CheckMoneyOrder.PaymentMethodDescription"); }
+            get
+            {
+                return false;
+            }
         }
 
         #endregion
-
+        
     }
 }

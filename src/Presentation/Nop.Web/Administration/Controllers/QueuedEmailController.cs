@@ -36,12 +36,12 @@ namespace Nop.Admin.Controllers
             this._workContext = workContext;
 		}
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-		public virtual ActionResult List()
+		public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -55,10 +55,10 @@ namespace Nop.Admin.Controllers
 		}
 
 		[HttpPost]
-		public virtual ActionResult QueuedEmailList(DataSourceRequest command, QueuedEmailListModel model)
+		public ActionResult QueuedEmailList(DataSourceRequest command, QueuedEmailListModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             DateTime? startDateValue = (model.SearchStartDate == null) ? null
                             : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.SearchStartDate.Value, _dateTimeHelper.CurrentTimeZone);
@@ -81,20 +81,26 @@ namespace Nop.Admin.Controllers
                     if (x.SentOnUtc.HasValue)
                         m.SentOn = _dateTimeHelper.ConvertToUserTime(x.SentOnUtc.Value, DateTimeKind.Utc);
 
-                    //little performance optimization: ensure that "Body" is not returned
+                    //little hack here:
+                    //ensure that email body is not returned
+                    //otherwise, we can get the following error if emails have too long body:
+                    //"Error during serialization or deserialization using the JSON JavaScriptSerializer. The length of the string exceeds the value set on the maxJsonLength property. "
+                    //also it improves performance
                     m.Body = "";
 
                     return m;
                 }),
                 Total = queuedEmails.TotalCount
             };
-
-            return Json(gridModel);
-        }
+			return new JsonResult
+			{
+				Data = gridModel
+			};
+		}
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("go-to-email-by-number")]
-        public virtual ActionResult GoToEmailByNumber(QueuedEmailListModel model)
+        public ActionResult GoToEmailByNumber(QueuedEmailListModel model)
         {
             var queuedEmail = _queuedEmailService.GetQueuedEmailById(model.GoDirectlyToNumber);
             if (queuedEmail == null)
@@ -103,7 +109,7 @@ namespace Nop.Admin.Controllers
             return RedirectToAction("Edit", "QueuedEmail", new { id = queuedEmail.Id });
         }
 
-		public virtual ActionResult Edit(int id)
+		public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -127,7 +133,7 @@ namespace Nop.Admin.Controllers
         [HttpPost, ActionName("Edit")]
         [ParameterBasedOnFormName("save-continue", "continueEditing")]
         [FormValueRequired("save", "save-continue")]
-        public virtual ActionResult Edit(QueuedEmailModel model, bool continueEditing)
+        public ActionResult Edit(QueuedEmailModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -159,7 +165,7 @@ namespace Nop.Admin.Controllers
 		}
 
         [HttpPost, ActionName("Edit"), FormValueRequired("requeue")]
-        public virtual ActionResult Requeue(QueuedEmailModel queuedEmailModel)
+        public ActionResult Requeue(QueuedEmailModel queuedEmailModel)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -197,7 +203,7 @@ namespace Nop.Admin.Controllers
         }
 
 	    [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -214,7 +220,7 @@ namespace Nop.Admin.Controllers
 		}
 
         [HttpPost]
-        public virtual ActionResult DeleteSelected(ICollection<int> selectedIds)
+        public ActionResult DeleteSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();
@@ -229,7 +235,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost, ActionName("List")]
         [FormValueRequired("delete-all")]
-        public virtual ActionResult DeleteAll()
+        public ActionResult DeleteAll()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageMessageQueue))
                 return AccessDeniedView();

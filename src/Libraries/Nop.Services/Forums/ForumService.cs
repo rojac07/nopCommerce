@@ -316,7 +316,7 @@ namespace Nop.Services.Forums
             return _cacheManager.Get(key, () =>
             {
                 var query = from fg in _forumGroupRepository.Table
-                            orderby fg.DisplayOrder, fg.Id
+                            orderby fg.DisplayOrder
                             select fg;
                 return query.ToList();
             });
@@ -434,7 +434,7 @@ namespace Nop.Services.Forums
             return _cacheManager.Get(key, () =>
             {
                 var query = from f in _forumRepository.Table
-                            orderby f.DisplayOrder, f.Id
+                            orderby f.DisplayOrder
                             where f.ForumGroupId == forumGroupId
                             select f;
                 var forums = query.ToList();

@@ -13,7 +13,7 @@ namespace Nop.Admin.Validators.Forums
         {
             RuleFor(x => x.Name).NotEmpty().WithMessage(localizationService.GetResource("Admin.ContentManagement.Forums.ForumGroup.Fields.Name.Required"));
 
-            SetDatabaseValidationRules<ForumGroup>(dbContext);
+            SetStringPropertiesMaxLength<ForumGroup>(dbContext);
         }
     }
 }

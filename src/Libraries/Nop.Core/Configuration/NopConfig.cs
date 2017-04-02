@@ -29,14 +29,13 @@ namespace Nop.Core.Configuration
 
             var userAgentStringsNode = section.SelectSingleNode("UserAgentStrings");
             config.UserAgentStringsPath = GetString(userAgentStringsNode, "databasePath");
-            config.CrawlerOnlyUserAgentStringsPath = GetString(userAgentStringsNode, "crawlersOnlyDatabasePath");
-
+           
             var supportPreviousNopcommerceVersionsNode = section.SelectSingleNode("SupportPreviousNopcommerceVersions");
             config.SupportPreviousNopcommerceVersions = GetBool(supportPreviousNopcommerceVersionsNode, "Enabled");
             
             var webFarmsNode = section.SelectSingleNode("WebFarms");
             config.MultipleInstancesEnabled = GetBool(webFarmsNode, "MultipleInstancesEnabled");
-            config.RunOnAzureWebApps = GetBool(webFarmsNode, "RunOnAzureWebApps");
+            config.RunOnAzureWebsites = GetBool(webFarmsNode, "RunOnAzureWebsites");
 
             var azureBlobStorageNode = section.SelectSingleNode("AzureBlobStorage");
             config.AzureBlobStorageConnectionString = GetString(azureBlobStorageNode, "ConnectionString");
@@ -80,11 +79,6 @@ namespace Nop.Core.Configuration
         /// </summary>
         public string UserAgentStringsPath { get; private set; }
 
-        /// <summary>
-        /// Path to database with crawler only user agent strings
-        /// </summary>
-        public string CrawlerOnlyUserAgentStringsPath { get; private set; }
-
 
 
         /// <summary>
@@ -112,9 +106,9 @@ namespace Nop.Core.Configuration
         public bool MultipleInstancesEnabled { get; private set; }
 
         /// <summary>
-        /// A value indicating whether the site is run on Windows Azure Web Apps
+        /// A value indicating whether the site is run on Windows Azure Websites
         /// </summary>
-        public bool RunOnAzureWebApps { get; private set; }
+        public bool RunOnAzureWebsites { get; private set; }
 
         /// <summary>
         /// Connection string for Azure BLOB storage

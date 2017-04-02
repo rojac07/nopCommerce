@@ -3,7 +3,6 @@ using Nop.Core.Caching;
 using Nop.Core.Configuration;
 using Nop.Core.Infrastructure;
 using Nop.Core.Infrastructure.DependencyManagement;
-
 namespace Nop.Services.Tests
 {
     /// <summary>

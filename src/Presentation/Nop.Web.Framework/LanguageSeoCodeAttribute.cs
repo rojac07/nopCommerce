@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Nop.Core;
 using Nop.Core.Data;
 using Nop.Core.Domain.Localization;
 using Nop.Core.Infrastructure;
-using Nop.Services.Localization;
 using Nop.Web.Framework.Localization;
 
 namespace Nop.Web.Framework
@@ -30,7 +28,7 @@ namespace Nop.Web.Framework
                 return;
 
             //only GET requests
-            if (!String.Equals(request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
+            if (!String.Equals(filterContext.HttpContext.Request.HttpMethod, "GET", StringComparison.OrdinalIgnoreCase))
                 return;
 
             if (!DataSettingsHelper.DatabaseIsInstalled())
@@ -46,29 +44,11 @@ namespace Nop.Web.Framework
 
 
             //process current URL
-            var pageUrl = request.RawUrl;
-            string applicationPath = request.ApplicationPath;
+            var pageUrl = filterContext.HttpContext.Request.RawUrl;
+            string applicationPath = filterContext.HttpContext.Request.ApplicationPath;
             if (pageUrl.IsLocalizedUrl(applicationPath, true))
-            {
                 //already localized URL
-                //let's ensure that this language exists
-                var seoCode = pageUrl.GetLanguageSeoCodeFromUrl(applicationPath, true);
-                
-                var languageService = EngineContext.Current.Resolve<ILanguageService>();
-                var language = languageService.GetAllLanguages()
-                    .FirstOrDefault(l => seoCode.Equals(l.UniqueSeoCode, StringComparison.InvariantCultureIgnoreCase));
-                if (language != null && language.Published)
-                {
-                    //exists
-                    return;
-                }
-                else
-                {
-                    //doesn't exist. redirect to the original page (not permanent)
-                    pageUrl = pageUrl.RemoveLanguageSeoCodeFromRawUrl(applicationPath);
-                    filterContext.Result = new RedirectResult(pageUrl);
-                }
-            }
+                return;
             //add language code to URL
             var workContext = EngineContext.Current.Resolve<IWorkContext>();
             pageUrl = pageUrl.AddLanguageSeoCodeToRawUrl(applicationPath, workContext.WorkingLanguage);

@@ -13,7 +13,7 @@ namespace Nop.Admin.Validators.Shipping
         {
             RuleFor(x => x.Name).NotEmpty().WithMessage(localizationService.GetResource("Admin.Configuration.Shipping.DeliveryDates.Fields.Name.Required"));
 
-            SetDatabaseValidationRules<DeliveryDate>(dbContext);
+            SetStringPropertiesMaxLength<DeliveryDate>(dbContext);
         }
     }
 }

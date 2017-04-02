@@ -79,7 +79,7 @@ namespace Nop.Plugin.Shipping.UPS.Controllers
                 foreach (string service in UPSServices.Services)
                 {
                     string serviceId = UPSServices.GetServiceId(service);
-                    if (!String.IsNullOrEmpty(serviceId))
+                    if (!String.IsNullOrEmpty(serviceId) && !String.IsNullOrEmpty(carrierServicesOfferedDomestic))
                     {
                         // Add delimiters [] so that single digit IDs aren't found in multi-digit IDs
                         if (carrierServicesOfferedDomestic.Contains(String.Format("[{0}]", serviceId)))
@@ -87,7 +87,7 @@ namespace Nop.Plugin.Shipping.UPS.Controllers
                     }
                 }
 
-            return View("~/Plugins/Shipping.UPS/Views/Configure.cshtml", model);
+            return View("~/Plugins/Shipping.UPS/Views/ShippingUPS/Configure.cshtml", model);
         }
 
         [HttpPost]

@@ -44,8 +44,6 @@ namespace Nop.Services.News
 
         #region Methods
 
-        #region News
-
         /// <summary>
         /// Deletes a news
         /// </summary>
@@ -161,51 +159,20 @@ namespace Nop.Services.News
             //event notification
             _eventPublisher.EntityUpdated(news);
         }
-
-        #endregion
-
-        #region News comments
-
+        
         /// <summary>
         /// Gets all comments
         /// </summary>
         /// <param name="customerId">Customer identifier; 0 to load all records</param>
-        /// <param name="storeId">Store identifier; pass 0 to load all records</param>
-        /// <param name="newsItemId">News item ID; 0 or null to load all records</param>
-        /// <param name="approved">A value indicating whether to content is approved; null to load all records</param> 
-        /// <param name="fromUtc">Item creation from; null to load all records</param>
-        /// <param name="toUtc">Item creation to; null to load all records</param>
-        /// <param name="commentText">Search comment text; null to load all records</param>
         /// <returns>Comments</returns>
-        public virtual IList<NewsComment> GetAllComments(int customerId = 0, int storeId = 0, int? newsItemId = null,
-            bool? approved = null, DateTime? fromUtc = null, DateTime? toUtc = null, string commentText = null)
+        public virtual IList<NewsComment> GetAllComments(int customerId)
         {
             var query = _newsCommentRepository.Table;
-
-            if (approved.HasValue)
-                query = query.Where(comment => comment.IsApproved == approved);
-
-            if (newsItemId > 0)
-                query = query.Where(comment => comment.NewsItemId == newsItemId);
-
             if (customerId > 0)
-                query = query.Where(comment => comment.CustomerId == customerId);
-
-            if (storeId > 0)
-                query = query.Where(comment => comment.StoreId == storeId);
-
-            if (fromUtc.HasValue)
-                query = query.Where(comment => fromUtc.Value <= comment.CreatedOnUtc);
-
-            if (toUtc.HasValue)
-                query = query.Where(comment => toUtc.Value >= comment.CreatedOnUtc);
-
-            if (!string.IsNullOrEmpty(commentText))
-                query = query.Where(c => c.CommentText.Contains(commentText) || c.CommentTitle.Contains(commentText));
-
+                query = query.Where(nc => nc.CustomerId == customerId);
             query = query.OrderBy(nc => nc.CreatedOnUtc);
-
-            return query.ToList();
+            var comments = query.ToList();
+            return comments;
         }
 
         /// <summary>
@@ -247,26 +214,6 @@ namespace Nop.Services.News
         }
 
         /// <summary>
-        /// Get the count of news comments
-        /// </summary>
-        /// <param name="newsItem">News item</param>
-        /// <param name="storeId">Store identifier; pass 0 to load all records</param>
-        /// <param name="isApproved">A value indicating whether to count only approved or not approved comments; pass null to get number of all comments</param>
-        /// <returns>Number of news comments</returns>
-        public virtual int GetNewsCommentsCount(NewsItem newsItem, int storeId = 0, bool? isApproved = null)
-        {
-            var query = _newsCommentRepository.Table.Where(comment => comment.NewsItemId == newsItem.Id);
-
-            if (storeId > 0)
-                query = query.Where(comment => comment.StoreId == storeId);
-
-            if (isApproved.HasValue)
-                query = query.Where(comment => comment.IsApproved == isApproved.Value);
-
-            return query.Count();
-        }
-
-        /// <summary>
         /// Deletes a news comment
         /// </summary>
         /// <param name="newsComment">News comment</param>
@@ -276,9 +223,6 @@ namespace Nop.Services.News
                 throw new ArgumentNullException("newsComment");
 
             _newsCommentRepository.Delete(newsComment);
-
-            //event notification
-            _eventPublisher.EntityDeleted(newsComment);
         }
 
         /// <summary>
@@ -290,14 +234,8 @@ namespace Nop.Services.News
             if (newsComments == null)
                 throw new ArgumentNullException("newsComments");
 
-            foreach (var newsComment in newsComments)
-            {
-                DeleteNewsComment(newsComment);
-            }
+            _newsCommentRepository.Delete(newsComments);
         }
-        
-        #endregion
-
         #endregion
     }
 }

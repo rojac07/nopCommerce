@@ -44,8 +44,7 @@
                         },
                         pageable: {
                             refresh: true,
-                            pageSizes: [@(gridPageSizes)],
-                            @Html.Partial("_GridPagerMessages")
+                            pageSizes: [@(gridPageSizes)]
                         },
                         editable: {
                             confirmation: "@T("Admin.Common.DeleteConfirmation")",
@@ -54,9 +53,9 @@
                         scrollable: false,
                         columns: [
                             {
-                                field: "CustomOrderNumber",
-                                title: "@T("Admin.Orders.Fields.CustomOrderNumber")",
-                                width: 200
+                                field: "Id",
+                                title: "@T("Admin.Orders.Fields.ID")",
+                                width: 50
                             }, {
                                 field: "CustomerEmail",
                                 title: "@T("Admin.Orders.Fields.CustomerEmail")",
@@ -90,9 +89,7 @@
                                 field: "Id",
                                 title: "@T("Admin.Common.View")",
                                 width: 200,
-                                headerAttributes: { style: "text-align:center" },
-                                attributes: { style: "text-align:center" },
-                                template: '<a class="btn btn-default" href="@Url.Content("~/Admin/Order/Edit/")#=Id#"><i class="fa fa-eye"></i>@T("Admin.Common.View")</a>'
+                                template: '<a href="@Url.Content("~/Admin/Order/Edit/")#=Id#">@T("Admin.Common.View")</a>'
                             }
                         ]
                     });

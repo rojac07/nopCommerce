@@ -66,9 +66,6 @@ namespace Nop.Services.Common
         public virtual IList<AddressAttribute> ParseAddressAttributes(string attributesXml)
         {
             var result = new List<AddressAttribute>();
-            if (String.IsNullOrEmpty(attributesXml))
-                return result;
-
             var ids = ParseAddressAttributeIds(attributesXml);
             foreach (int id in ids)
             {
@@ -89,9 +86,6 @@ namespace Nop.Services.Common
         public virtual IList<AddressAttributeValue> ParseAddressAttributeValues(string attributesXml)
         {
             var values = new List<AddressAttributeValue>();
-            if (String.IsNullOrEmpty(attributesXml))
-                return values;
-
             var attributes = ParseAddressAttributes(attributesXml);
             foreach (var attribute in attributes)
             {
@@ -125,9 +119,6 @@ namespace Nop.Services.Common
         public virtual IList<string> ParseValues(string attributesXml, int addressAttributeId)
         {
             var selectedAddressAttributeValues = new List<string>();
-            if (String.IsNullOrEmpty(attributesXml))
-                return selectedAddressAttributeValues;
-
             try
             {
                 var xmlDoc = new XmlDocument();

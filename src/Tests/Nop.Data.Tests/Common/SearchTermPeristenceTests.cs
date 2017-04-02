@@ -1,4 +1,5 @@
-﻿using Nop.Tests;
+﻿using Nop.Core.Domain.Common;
+using Nop.Tests;
 using NUnit.Framework;
 
 namespace Nop.Data.Tests.Common
@@ -9,12 +10,19 @@ namespace Nop.Data.Tests.Common
         [Test]
         public void Can_save_and_load_searchTerm()
         {
-            var searchTerm = this.GetTestSearchTerm();
+            var searchTerm = new SearchTerm
+            {
+                Keyword = "Keyword 1",
+                StoreId = 1,
+                Count = 2,
+            };
 
-            var fromDb = SaveAndLoadEntity(this.GetTestSearchTerm());
+            var fromDb = SaveAndLoadEntity(searchTerm);
             fromDb.ShouldNotBeNull();
 
-            fromDb.PropertiesShouldEqual(searchTerm);
+            fromDb.Keyword.ShouldEqual("Keyword 1");
+            fromDb.StoreId.ShouldEqual(1);
+            fromDb.Count.ShouldEqual(2);
         }
     }
 }

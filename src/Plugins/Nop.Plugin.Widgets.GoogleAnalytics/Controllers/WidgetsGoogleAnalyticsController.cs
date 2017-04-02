@@ -7,7 +7,6 @@ using Nop.Core;
 using Nop.Core.Domain.Orders;
 using Nop.Plugin.Widgets.GoogleAnalytics.Models;
 using Nop.Services.Catalog;
-using Nop.Services.Common;
 using Nop.Services.Configuration;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
@@ -19,7 +18,6 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
 {
     public class WidgetsGoogleAnalyticsController : BasePluginController
     {
-        private const string ORDER_ALREADY_PROCESSED_ATTRIBUTE_NAME = "GoogleAnalytics.OrderAlreadyProcessed";
         private readonly IWorkContext _workContext;
         private readonly IStoreContext _storeContext;
         private readonly IStoreService _storeService;
@@ -29,7 +27,6 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
         private readonly ICategoryService _categoryService;
         private readonly IProductAttributeParser _productAttributeParser;
         private readonly ILocalizationService _localizationService;
-        private readonly IGenericAttributeService _genericAttributeService;
 
         public WidgetsGoogleAnalyticsController(IWorkContext workContext,
             IStoreContext storeContext, 
@@ -39,8 +36,7 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
             ILogger logger, 
             ICategoryService categoryService,
             IProductAttributeParser productAttributeParser,
-            ILocalizationService localizationService,
-            IGenericAttributeService genericAttributeService)
+            ILocalizationService localizationService)
         {
             this._workContext = workContext;
             this._storeContext = storeContext;
@@ -51,7 +47,6 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
             this._categoryService = categoryService;
             this._productAttributeParser = productAttributeParser;
             this._localizationService = localizationService;
-            this._genericAttributeService = genericAttributeService;
         }
 
         [AdminAuthorize]
@@ -82,7 +77,7 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
                 model.ZoneId_OverrideForStore = _settingService.SettingExists(googleAnalyticsSettings, x => x.WidgetZone, storeScope);
             }
 
-            return View("~/Plugins/Widgets.GoogleAnalytics/Views/Configure.cshtml", model);
+            return View("~/Plugins/Widgets.GoogleAnalytics/Views/WidgetsGoogleAnalytics/Configure.cshtml", model);
         }
 
         [HttpPost]
@@ -141,7 +136,7 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
                 }
                 else
                 {
-                    globalScript += GetEcommerceScript(null);
+                    globalScript += GetTrackingScript();
                 }
             }
             catch (Exception ex)
@@ -156,6 +151,28 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
             var order = _orderService.SearchOrders(storeId: _storeContext.CurrentStore.Id,
                 customerId: _workContext.CurrentCustomer.Id, pageSize: 1).FirstOrDefault();
             return order;
+        }
+        
+        //<script type="text/javascript"> 
+
+        //var _gaq = _gaq || []; 
+        //_gaq.push(['_setAccount', 'UA-XXXXX-X']); 
+        //_gaq.push(['_trackPageview']); 
+
+        //(function() { 
+        //var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; 
+        //ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; 
+        //var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); 
+        //})(); 
+
+        //</script>
+        private string GetTrackingScript()
+        {
+            var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(_storeContext.CurrentStore.Id);
+            var analyticsTrackingScript = googleAnalyticsSettings.TrackingScript + "\n";
+            analyticsTrackingScript = analyticsTrackingScript.Replace("{GOOGLEID}", googleAnalyticsSettings.GoogleId);
+            analyticsTrackingScript = analyticsTrackingScript.Replace("{ECOMMERCE}", "");
+            return analyticsTrackingScript;
         }
         
         //<script type="text/javascript"> 
@@ -197,14 +214,12 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
         private string GetEcommerceScript(Order order)
         {
             var googleAnalyticsSettings = _settingService.LoadSetting<GoogleAnalyticsSettings>(_storeContext.CurrentStore.Id);
+            var usCulture = new CultureInfo("en-US");
             var analyticsTrackingScript = googleAnalyticsSettings.TrackingScript + "\n";
             analyticsTrackingScript = analyticsTrackingScript.Replace("{GOOGLEID}", googleAnalyticsSettings.GoogleId);
 
-            //ensure that ecommerce tracking code is renderred only once (avoid duplicated data in Google Analytics)
-            if (order != null && !order.GetAttribute<bool>(ORDER_ALREADY_PROCESSED_ATTRIBUTE_NAME))
+            if (order != null)
             {
-                var usCulture = new CultureInfo("en-US");
-
                 var analyticsEcommerceScript = googleAnalyticsSettings.EcommerceScript + "\n";
                 analyticsEcommerceScript = analyticsEcommerceScript.Replace("{GOOGLEID}", googleAnalyticsSettings.GoogleId);
                 analyticsEcommerceScript = analyticsEcommerceScript.Replace("{ORDERID}", order.Id.ToString());
@@ -241,11 +256,6 @@ namespace Nop.Plugin.Widgets.GoogleAnalytics.Controllers
 
                 analyticsTrackingScript = analyticsTrackingScript.Replace("{ECOMMERCE}", analyticsEcommerceScript);
 
-                _genericAttributeService.SaveAttribute(order, ORDER_ALREADY_PROCESSED_ATTRIBUTE_NAME, true);
-            }
-            else
-            {
-                analyticsTrackingScript = analyticsTrackingScript.Replace("{ECOMMERCE}", "");
             }
 
             return analyticsTrackingScript;

@@ -29,14 +29,9 @@ namespace Nop.Core.Domain.Catalog
         public bool PublishBackProductWhenCancellingOrders { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether to display product SKU on the product details page
+        /// Gets or sets a value indicating whether to display product SKU
         /// </summary>
-        public bool ShowSkuOnProductDetailsPage { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether to display product SKU on catalog pages
-        /// </summary>
-        public bool ShowSkuOnCatalogPages { get; set; }
+        public bool ShowProductSku { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether to display manufacturer part number of a product
@@ -112,11 +107,6 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a value indicating whether to allow anonymous users write product reviews.
         /// </summary>
         public bool AllowAnonymousUsersToReviewProduct { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether product can be reviewed only by customer who have already ordered it
-        /// </summary>
-        public bool ProductReviewPossibleOnlyAfterPurchasing { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether notification of a store owner about new product reviews is enabled
@@ -348,15 +338,9 @@ namespace Nop.Core.Domain.Catalog
         /// Gets or sets a display order of ProductSortingEnum values 
         /// </summary>
         public Dictionary<int, int> ProductSortingEnumDisplayOrder { get; set; }
-
         /// <summary>
         /// Gets or sets a value indicating whether the products need to be exported/imported with their attributes
         /// </summary>
         public bool ExportImportProductAttributes { get; set; }
-
-        /// <summary>
-        /// Gets or sets a value indicating whether need create dropdown list for export
-        /// </summary>
-        public bool ExportImportUseDropdownlistsForAssociatedEntities { get; set; }
     }
 }

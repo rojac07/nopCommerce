@@ -7,9 +7,6 @@ namespace Nop.Plugin.Shipping.CanadaPost.Models
         [NopResourceDisplayName("Plugins.Shipping.CanadaPost.Fields.CustomerNumber")]
         public string CustomerNumber { get; set; }
 
-        [NopResourceDisplayName("Plugins.Shipping.CanadaPost.Fields.ContractId")]
-        public string ContractId { get; set; }
-
         [NopResourceDisplayName("Plugins.Shipping.CanadaPost.Fields.Api")]
         public string ApiKey { get; set; }
 

@@ -20,7 +20,8 @@ namespace Nop.Web.MVC.Tests.Framework.Controllers
         private AdminAuthorizeAttribute GetAdminAuthorizeAttribute(bool result)
         {
             var attribute = MockRepository.GeneratePartialMock<AdminAuthorizeAttribute>();
-            attribute.Expect(x => x.HasAdminAccess()).Return(result);
+            //by the way, HasAdminAccess should method be virtual in order to be overridden
+            attribute.Expect(x => x.HasAdminAccess(Arg<AuthorizationContext>.Is.Anything)).Return(result);
             return attribute;
         }
         private void TestActionThatShouldRequirePermission<TController>() where TController : ControllerBase, new()

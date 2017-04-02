@@ -18,14 +18,9 @@ namespace Nop.Admin.Validators.Catalog
             RuleFor(x => x.Quantity)
                 .GreaterThanOrEqualTo(1)
                 .WithMessage(localizationService.GetResource("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.Quantity.GreaterThanOrEqualTo1"))
-                .When(x => x.AttributeValueTypeId == (int)AttributeValueType.AssociatedToProduct && !x.CustomerEntersQty);
-
-            RuleFor(x => x.AssociatedProductId)
-                .GreaterThanOrEqualTo(1)
-                .WithMessage(localizationService.GetResource("Admin.Catalog.Products.ProductAttributes.Attributes.Values.Fields.AssociatedProduct.Choose"))
                 .When(x => x.AttributeValueTypeId == (int)AttributeValueType.AssociatedToProduct);
 
-            SetDatabaseValidationRules<ProductAttributeValue>(dbContext);
+            SetStringPropertiesMaxLength<ProductAttributeValue>(dbContext);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Nop.Tests;
+﻿using Nop.Core.Domain.Orders;
+using Nop.Tests;
 using NUnit.Framework;
 
 namespace Nop.Data.Tests.Orders
@@ -9,11 +10,16 @@ namespace Nop.Data.Tests.Orders
         [Test]
         public void Can_save_and_load_returnRequestReason()
         {
-            var returnRequestReason = this.GetTestReturnRequestReason();
+            var returnRequestReason = new ReturnRequestReason
+            {
+                Name = "Name 1",
+                DisplayOrder = 1
+            };
 
-            var fromDb = SaveAndLoadEntity(this.GetTestReturnRequestReason());
+            var fromDb = SaveAndLoadEntity(returnRequestReason);
             fromDb.ShouldNotBeNull();
-            fromDb.PropertiesShouldEqual(returnRequestReason);
+            fromDb.Name.ShouldEqual("Name 1");
+            fromDb.DisplayOrder.ShouldEqual(1);
         }
     }
 }

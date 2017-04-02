@@ -8,8 +8,7 @@ namespace Nop.Core.Domain.Catalog
         /// <summary>
         /// When order is paid
         /// </summary>
-        WhenOrderIsPaid = 0,
-
+        WhenOrderIsPaid = 1,
         /// <summary>
         /// Manually
         /// </summary>

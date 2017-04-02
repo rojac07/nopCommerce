@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Nop.Core;
 using Nop.Core.Domain.Catalog;
-using Nop.Core.Domain.Customers;
 using Nop.Services.Directory;
 using Nop.Services.Localization;
-using Nop.Services.Shipping.Date;
 
 namespace Nop.Services.Catalog
 {
@@ -16,28 +14,34 @@ namespace Nop.Services.Catalog
     public static class ProductExtensions
     {
         /// <summary>
-        /// Gets a preferred tier price
+        /// Get product special price
         /// </summary>
         /// <param name="product">Product</param>
-        /// <param name="customer">Customer</param>
-        /// <param name="storeId">Store identifier</param>
-        /// <param name="quantity">Quantity</param>
-        /// <returns>Tier price</returns>
-        public static TierPrice GetPreferredTierPrice(this Product product, Customer customer, int storeId, int quantity)
+        /// <returns>Special price; null if product does not have special price specified</returns>
+        public static decimal? GetSpecialPrice(this Product product)
         {
-            if (!product.HasTierPrices)
+            if (product == null)
+                throw new ArgumentNullException("product");
+
+            if (!product.SpecialPrice.HasValue)
                 return null;
 
-            //get actual tier prices
-            var actualTierPrices = product.TierPrices.OrderBy(price => price.Quantity).ToList()
-                .FilterByStore(storeId)
-                .FilterForCustomer(customer)
-                .FilterByDate()
-                .RemoveDuplicatedQuantities();
+            //check date range
+            DateTime now = DateTime.UtcNow;
+            if (product.SpecialPriceStartDateTimeUtc.HasValue)
+            {
+                DateTime startDate = DateTime.SpecifyKind(product.SpecialPriceStartDateTimeUtc.Value, DateTimeKind.Utc);
+                if (startDate.CompareTo(now) > 0)
+                    return null;
+            }
+            if (product.SpecialPriceEndDateTimeUtc.HasValue)
+            {
+                DateTime endDate = DateTime.SpecifyKind(product.SpecialPriceEndDateTimeUtc.Value, DateTimeKind.Utc);
+                if (endDate.CompareTo(now) < 0)
+                    return null;
+            }
 
-            //get the most suitable tier price based on the passed quantity
-            var tierPrice = actualTierPrices.LastOrDefault(price => quantity >= price.Quantity);
-            return tierPrice;
+            return product.SpecialPrice.Value;
         }
         
         /// <summary>
@@ -79,10 +83,9 @@ namespace Nop.Services.Catalog
         /// <param name="attributesXml">Selected product attributes in XML format (if specified)</param>
         /// <param name="localizationService">Localization service</param>
         /// <param name="productAttributeParser">Product attribute parser</param>
-        /// <param name="dateRangeService">Date range service</param>
         /// <returns>The stock message</returns>
         public static string FormatStockMessage(this Product product, string attributesXml,
-            ILocalizationService localizationService, IProductAttributeParser productAttributeParser, IDateRangeService dateRangeService)
+            ILocalizationService localizationService, IProductAttributeParser productAttributeParser)
         {
             if (product == null)
                 throw new ArgumentNullException("product");
@@ -92,9 +95,6 @@ namespace Nop.Services.Catalog
 
             if (productAttributeParser == null)
                 throw new ArgumentNullException("productAttributeParser");
-
-            if (dateRangeService == null)
-                throw new ArgumentNullException("dateRangeService");
 
             string stockMessage = string.Empty;
 
@@ -119,21 +119,16 @@ namespace Nop.Services.Catalog
                         else
                         {
                             //out of stock
-                            var productAvailabilityRange = dateRangeService.GetProductAvailabilityRangeById(product.ProductAvailabilityRangeId);
                             switch (product.BackorderMode)
                             {
                                 case BackorderMode.NoBackorders:
-                                    stockMessage = productAvailabilityRange == null ? localizationService.GetResource("Products.Availability.OutOfStock")
-                                        : string.Format(localizationService.GetResource("Products.Availability.AvailabilityRange"),
-                                            productAvailabilityRange.GetLocalized(range => range.Name));
+                                    stockMessage = localizationService.GetResource("Products.Availability.OutOfStock");
                                     break;
                                 case BackorderMode.AllowQtyBelow0:
                                     stockMessage = localizationService.GetResource("Products.Availability.InStock");
                                     break;
                                 case BackorderMode.AllowQtyBelow0AndNotifyCustomer:
-                                    stockMessage = productAvailabilityRange == null ? localizationService.GetResource("Products.Availability.Backordering")
-                                        : string.Format(localizationService.GetResource("Products.Availability.BackorderingWithDate"),
-                                            productAvailabilityRange.GetLocalized(range => range.Name));
+                                    stockMessage = localizationService.GetResource("Products.Availability.Backordering");
                                     break;
                                 default:
                                     break;
@@ -169,10 +164,7 @@ namespace Nop.Services.Catalog
                             }
                             else
                             {
-                                var productAvailabilityRange = dateRangeService.GetProductAvailabilityRangeById(product.ProductAvailabilityRangeId);
-                                stockMessage = productAvailabilityRange == null ? localizationService.GetResource("Products.Availability.OutOfStock")
-                                    : string.Format(localizationService.GetResource("Products.Availability.AvailabilityRange"),
-                                        productAvailabilityRange.GetLocalized(range => range.Name));
+                                stockMessage = localizationService.GetResource("Products.Availability.OutOfStock");
                             }
                         }
                         else
@@ -180,10 +172,7 @@ namespace Nop.Services.Catalog
                             //no combination configured
                             if (product.AllowAddingOnlyExistingAttributeCombinations)
                             {
-                                var productAvailabilityRange = dateRangeService.GetProductAvailabilityRangeById(product.ProductAvailabilityRangeId);
-                                stockMessage = productAvailabilityRange == null ? localizationService.GetResource("Products.Availability.OutOfStock")
-                                    : string.Format(localizationService.GetResource("Products.Availability.AvailabilityRange"),
-                                        productAvailabilityRange.GetLocalized(range => range.Name));
+                                stockMessage = localizationService.GetResource("Products.Availability.OutOfStock");
                             }
                             else
                             {

@@ -10,7 +10,6 @@ using Nop.Services.Configuration;
 using Nop.Services.Directory;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Web.Framework.Controllers;
@@ -32,23 +31,18 @@ namespace Nop.Admin.Controllers
         private readonly ILanguageService _languageService;
         private readonly IStoreService _storeService;
         private readonly IStoreMappingService _storeMappingService;
-        private readonly ICustomerActivityService _customerActivityService;
 
         #endregion
 
-        #region Ctor
+        #region Constructors
 
         public CurrencyController(ICurrencyService currencyService, 
-            CurrencySettings currencySettings, 
-            ISettingService settingService,
-            IDateTimeHelper dateTimeHelper, 
-            ILocalizationService localizationService,
+            CurrencySettings currencySettings, ISettingService settingService,
+            IDateTimeHelper dateTimeHelper, ILocalizationService localizationService,
             IPermissionService permissionService,
-            ILocalizedEntityService localizedEntityService, 
-            ILanguageService languageService,
+            ILocalizedEntityService localizedEntityService, ILanguageService languageService,
             IStoreService storeService, 
-            IStoreMappingService storeMappingService,
-            ICustomerActivityService customerActivityService)
+            IStoreMappingService storeMappingService)
         {
             this._currencyService = currencyService;
             this._currencySettings = currencySettings;
@@ -60,7 +54,6 @@ namespace Nop.Admin.Controllers
             this._languageService = languageService;
             this._storeService = storeService;
             this._storeMappingService = storeMappingService;
-            this._customerActivityService = customerActivityService;
         }
         
         #endregion
@@ -72,7 +65,10 @@ namespace Nop.Admin.Controllers
         {
             foreach (var localized in model.Locales)
             {
-                _localizedEntityService.SaveLocalizedValue(currency, x => x.Name, localized.Name, localized.LanguageId);
+                _localizedEntityService.SaveLocalizedValue(currency,
+                                                               x => x.Name,
+                                                               localized.Name,
+                                                               localized.LanguageId);
             }
         }
 
@@ -126,12 +122,12 @@ namespace Nop.Admin.Controllers
 
         #region Methods
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List(bool liveRates = false)
+        public ActionResult List(bool liveRates = false)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -168,7 +164,7 @@ namespace Nop.Admin.Controllers
 
         [HttpPost]
         [FormValueRequired("save")]
-        public virtual ActionResult List(FormCollection formValues)
+        public ActionResult List(FormCollection formValues)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -180,10 +176,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ListGrid(DataSourceRequest command)
+        public ActionResult ListGrid(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var currenciesModel = _currencyService.GetAllCurrencies(true).Select(x => x.ToModel()).ToList();
             foreach (var currency in currenciesModel)
@@ -200,7 +196,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ApplyRate(string currencyCode, decimal rate)
+        public ActionResult ApplyRate(string currencyCode, decimal rate)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -217,7 +213,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult MarkAsPrimaryExchangeRateCurrency(int id)
+        public ActionResult MarkAsPrimaryExchangeRateCurrency(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -229,7 +225,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult MarkAsPrimaryStoreCurrency(int id)
+        public ActionResult MarkAsPrimaryStoreCurrency(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -244,7 +240,7 @@ namespace Nop.Admin.Controllers
 
         #region Create / Edit / Delete
 
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -261,7 +257,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Create(CurrencyModel model, bool continueEditing)
+        public ActionResult Create(CurrencyModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -272,10 +268,6 @@ namespace Nop.Admin.Controllers
                 currency.CreatedOnUtc = DateTime.UtcNow;
                 currency.UpdatedOnUtc = DateTime.UtcNow;
                 _currencyService.InsertCurrency(currency);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewCurrency", _localizationService.GetResource("ActivityLog.AddNewCurrency"), currency.Id);
-
                 //locales
                 UpdateLocales(currency, model);
                 //Stores
@@ -298,7 +290,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
         
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -322,7 +314,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Edit(CurrencyModel model, bool continueEditing)
+        public ActionResult Edit(CurrencyModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -339,17 +331,13 @@ namespace Nop.Admin.Controllers
                 if (allCurrencies.Count == 1 && allCurrencies[0].Id == currency.Id &&
                     !model.Published)
                 {
-                    ErrorNotification(_localizationService.GetResource("Admin.Configuration.Currencies.PublishedCurrencyRequired"));
+                    ErrorNotification("At least one published currency is required.");
                     return RedirectToAction("Edit", new { id = currency.Id });
                 }
 
                 currency = model.ToEntity(currency);
                 currency.UpdatedOnUtc = DateTime.UtcNow;
                 _currencyService.UpdateCurrency(currency);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditCurrency", _localizationService.GetResource("ActivityLog.EditCurrency"), currency.Id);
-
                 //locales
                 UpdateLocales(currency, model);
                 //Stores
@@ -375,7 +363,7 @@ namespace Nop.Admin.Controllers
         }
         
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCurrencies))
                 return AccessDeniedView();
@@ -397,14 +385,11 @@ namespace Nop.Admin.Controllers
                 var allCurrencies = _currencyService.GetAllCurrencies();
                 if (allCurrencies.Count == 1 && allCurrencies[0].Id == currency.Id)
                 {
-                    ErrorNotification(_localizationService.GetResource("Admin.Configuration.Currencies.PublishedCurrencyRequired"));
+                    ErrorNotification("At least one published currency is required.");
                     return RedirectToAction("Edit", new { id = currency.Id });
                 }
 
                 _currencyService.DeleteCurrency(currency);
-
-                //activity log
-                _customerActivityService.InsertActivity("DeleteCurrency", _localizationService.GetResource("ActivityLog.DeleteCurrency"), currency.Id);
 
                 SuccessNotification(_localizationService.GetResource("Admin.Configuration.Currencies.Deleted"));
                 return RedirectToAction("List");

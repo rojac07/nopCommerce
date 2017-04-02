@@ -1,8 +1,6 @@
-﻿@using Nop.Services.Stores
-@{
+﻿@{
     var defaultGridPageSize = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().DefaultGridPageSize;
     var gridPageSizes = EngineContext.Current.Resolve<Nop.Core.Domain.Common.AdminAreaSettings>().GridPageSizes;
-    var stores = EngineContext.Current.Resolve<IStoreService>().GetAllStores();
 
     //page title
     ViewBag.Title = T("Admin.CurrentWishlists").Text;
@@ -57,8 +55,7 @@
                                 },
                                 pageable: {
                                     refresh: true,
-                                    pageSizes: [@(gridPageSizes)],
-                                    @Html.Partial("_GridPagerMessages")
+                                    pageSizes: [@(gridPageSizes)]
                                 },
                                 //details grid
                                 detailInit: detailInit,
@@ -110,8 +107,7 @@
                                     refresh: true,
                                     numeric: false,
                                     previousNext: false,
-                                    info: false,
-                                    @Html.Partial("_GridPagerMessages")
+                                    info: false
                                 },
                                 columns: [
                                     {
@@ -134,7 +130,6 @@
                                         width: 150
                                     },{
                                         field: "Store",
-                                        hidden: @(stores.Count > 1 ? "false" : "true"),
                                         title: "@T("Admin.CurrentCarts.Store")",
                                         width: 150
                                     },{

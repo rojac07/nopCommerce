@@ -7,19 +7,15 @@ namespace Nop.Data.Mapping.News
         public NewsCommentMap()
         {
             this.ToTable("NewsComment");
-            this.HasKey(comment => comment.Id);
+            this.HasKey(pr => pr.Id);
 
-            this.HasRequired(comment => comment.NewsItem)
-                .WithMany(news => news.NewsComments)
-                .HasForeignKey(comment => comment.NewsItemId);
+            this.HasRequired(nc => nc.NewsItem)
+                .WithMany(n => n.NewsComments)
+                .HasForeignKey(nc => nc.NewsItemId);
 
-            this.HasRequired(comment => comment.Customer)
+            this.HasRequired(cc => cc.Customer)
                 .WithMany()
-                .HasForeignKey(comment => comment.CustomerId);
-
-            this.HasRequired(comment => comment.Store)
-                .WithMany()
-                .HasForeignKey(comment => comment.StoreId);
+                .HasForeignKey(cc => cc.CustomerId);
         }
     }
 }

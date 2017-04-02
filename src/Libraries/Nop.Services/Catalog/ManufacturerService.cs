@@ -125,9 +125,6 @@ namespace Nop.Services.Catalog
             
             manufacturer.Deleted = true;
             UpdateManufacturer(manufacturer);
-
-            //event notification
-            _eventPublisher.EntityDeleted(manufacturer);
         }
 
         /// <summary>
@@ -151,7 +148,7 @@ namespace Nop.Services.Catalog
             if (!String.IsNullOrWhiteSpace(manufacturerName))
                 query = query.Where(m => m.Name.Contains(manufacturerName));
             query = query.Where(m => !m.Deleted);
-            query = query.OrderBy(m => m.DisplayOrder).ThenBy(m => m.Id);
+            query = query.OrderBy(m => m.DisplayOrder);
 
             if ((storeId > 0 && !_catalogSettings.IgnoreStoreLimitations) || (!showHidden && !_catalogSettings.IgnoreAcl))
             {
@@ -182,7 +179,7 @@ namespace Nop.Services.Catalog
                             into mGroup
                             orderby mGroup.Key
                             select mGroup.FirstOrDefault();
-                query = query.OrderBy(m => m.DisplayOrder).ThenBy(m => m.Id);
+                query = query.OrderBy(m => m.DisplayOrder);
             }
 
             return new PagedList<Manufacturer>(query, pageIndex, pageSize);
@@ -282,7 +279,7 @@ namespace Nop.Services.Catalog
                             where pm.ManufacturerId == manufacturerId &&
                                   !p.Deleted &&
                                   (showHidden || p.Published)
-                            orderby pm.DisplayOrder, pm.Id
+                            orderby pm.DisplayOrder
                             select pm;
 
                 if (!showHidden && (!_catalogSettings.IgnoreAcl || !_catalogSettings.IgnoreStoreLimitations))
@@ -318,7 +315,7 @@ namespace Nop.Services.Catalog
                             into pmGroup
                             orderby pmGroup.Key
                             select pmGroup.FirstOrDefault();
-                    query = query.OrderBy(pm => pm.DisplayOrder).ThenBy(pm => pm.Id);
+                    query = query.OrderBy(pm => pm.DisplayOrder);
                 }
 
                 var productManufacturers = new PagedList<ProductManufacturer>(query, pageIndex, pageSize);
@@ -345,7 +342,7 @@ namespace Nop.Services.Catalog
                             where pm.ProductId == productId &&
                                 !m.Deleted &&
                                 (showHidden || m.Published)
-                            orderby pm.DisplayOrder, pm.Id
+                            orderby pm.DisplayOrder
                             select pm;
 
 
@@ -383,7 +380,7 @@ namespace Nop.Services.Catalog
                             into mGroup
                             orderby mGroup.Key
                             select mGroup.FirstOrDefault();
-                    query = query.OrderBy(pm => pm.DisplayOrder).ThenBy(pm => pm.Id);
+                    query = query.OrderBy(pm => pm.DisplayOrder);
                 }
 
                 var productManufacturers = query.ToList();

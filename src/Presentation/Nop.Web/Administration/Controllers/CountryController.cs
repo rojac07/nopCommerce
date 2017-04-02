@@ -11,7 +11,6 @@ using Nop.Services.Common;
 using Nop.Services.Directory;
 using Nop.Services.ExportImport;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Stores;
 using Nop.Web.Framework.Controllers;
@@ -35,11 +34,10 @@ namespace Nop.Admin.Controllers
         private readonly IStoreMappingService _storeMappingService;
         private readonly IExportManager _exportManager;
         private readonly IImportManager _importManager;
-        private readonly ICustomerActivityService _customerActivityService;
 
-        #endregion
+	    #endregion
 
-        #region Constructors
+		#region Constructors
 
         public CountryController(ICountryService countryService,
             IStateProvinceService stateProvinceService, 
@@ -51,9 +49,8 @@ namespace Nop.Admin.Controllers
             IStoreService storeService,
             IStoreMappingService storeMappingService,
             IExportManager exportManager,
-            IImportManager importManager,
-            ICustomerActivityService customerActivityService)
-        {
+            IImportManager importManager)
+		{
             this._countryService = countryService;
             this._stateProvinceService = stateProvinceService;
             this._localizationService = localizationService;
@@ -65,8 +62,7 @@ namespace Nop.Admin.Controllers
             this._storeMappingService = storeMappingService;
             this._exportManager = exportManager;
             this._importManager = importManager;
-            this._customerActivityService = customerActivityService;
-        }
+		}
 
 		#endregion 
 
@@ -146,12 +142,12 @@ namespace Nop.Admin.Controllers
 
         #region Countries
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-        public virtual ActionResult List()
+        public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -160,10 +156,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CountryList(DataSourceRequest command)
+        public ActionResult CountryList(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var countries = _countryService.GetAllCountries(showHidden: true);
             var gridModel = new DataSourceResult
@@ -175,7 +171,7 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
         
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -193,7 +189,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Create(CountryModel model, bool continueEditing)
+        public ActionResult Create(CountryModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -202,10 +198,6 @@ namespace Nop.Admin.Controllers
             {
                 var country = model.ToEntity();
                 _countryService.InsertCountry(country);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewCountry", _localizationService.GetResource("ActivityLog.AddNewCountry"), country.Id);
-
                 //locales
                 UpdateLocales(country, model);
                 //Stores
@@ -230,7 +222,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult Edit(int id)
+        public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -252,7 +244,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Edit(CountryModel model, bool continueEditing)
+        public ActionResult Edit(CountryModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -266,10 +258,6 @@ namespace Nop.Admin.Controllers
             {
                 country = model.ToEntity(country);
                 _countryService.UpdateCountry(country);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditCountry", _localizationService.GetResource("ActivityLog.EditCountry"), country.Id);
-
                 //locales
                 UpdateLocales(country, model);
                 //Stores
@@ -295,7 +283,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Delete(int id)
+        public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -312,9 +300,6 @@ namespace Nop.Admin.Controllers
 
                 _countryService.DeleteCountry(country);
 
-                //activity log
-                _customerActivityService.InsertActivity("DeleteCountry", _localizationService.GetResource("ActivityLog.DeleteCountry"), country.Id);
-
                 SuccessNotification(_localizationService.GetResource("Admin.Configuration.Countries.Deleted"));
                 return RedirectToAction("List");
             }
@@ -326,7 +311,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult PublishSelected(ICollection<int> selectedIds)
+        public ActionResult PublishSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -344,7 +329,7 @@ namespace Nop.Admin.Controllers
             return Json(new { Result = true });
         }
         [HttpPost]
-        public virtual ActionResult UnpublishSelected(ICollection<int> selectedIds)
+        public ActionResult UnpublishSelected(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -366,10 +351,10 @@ namespace Nop.Admin.Controllers
         #region States / provinces
 
         [HttpPost]
-        public virtual ActionResult States(int countryId, DataSourceRequest command)
+        public ActionResult States(int countryId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var states = _stateProvinceService.GetStateProvincesByCountryId(countryId, showHidden: true);
 
@@ -382,7 +367,7 @@ namespace Nop.Admin.Controllers
         }
 
         //create
-        public virtual ActionResult StateCreatePopup(int countryId)
+        public ActionResult StateCreatePopup(int countryId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -397,7 +382,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult StateCreatePopup(string btnId, string formId, StateProvinceModel model)
+        public ActionResult StateCreatePopup(string btnId, string formId, StateProvinceModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -412,10 +397,6 @@ namespace Nop.Admin.Controllers
                 var sp = model.ToEntity();
 
                 _stateProvinceService.InsertStateProvince(sp);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewStateProvince", _localizationService.GetResource("ActivityLog.AddNewStateProvince"), sp.Id);
-
                 UpdateLocales(sp, model);
 
                 ViewBag.RefreshPage = true;
@@ -429,7 +410,7 @@ namespace Nop.Admin.Controllers
         }
 
         //edit
-        public virtual ActionResult StateEditPopup(int id)
+        public ActionResult StateEditPopup(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -450,7 +431,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult StateEditPopup(string btnId, string formId, StateProvinceModel model)
+        public ActionResult StateEditPopup(string btnId, string formId, StateProvinceModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -465,9 +446,6 @@ namespace Nop.Admin.Controllers
                 sp = model.ToEntity(sp);
                 _stateProvinceService.UpdateStateProvince(sp);
 
-                //activity log
-                _customerActivityService.InsertActivity("EditStateProvince", _localizationService.GetResource("ActivityLog.EditStateProvince"), sp.Id);
-
                 UpdateLocales(sp, model);
 
                 ViewBag.RefreshPage = true;
@@ -481,7 +459,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult StateDelete(int id)
+        public ActionResult StateDelete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -498,14 +476,11 @@ namespace Nop.Admin.Controllers
             //int countryId = state.CountryId;
             _stateProvinceService.DeleteStateProvince(state);
 
-            //activity log
-            _customerActivityService.InsertActivity("DeleteStateProvince", _localizationService.GetResource("ActivityLog.DeleteStateProvince"), state.Id);
-
             return new NullJsonResult();
         }
 
         [AcceptVerbs(HttpVerbs.Get)]
-        public virtual ActionResult GetStatesByCountryId(string countryId,
+        public ActionResult GetStatesByCountryId(string countryId,
             bool? addSelectStateItem, bool? addAsterisk)
         {
             //permission validation is not required here
@@ -563,7 +538,7 @@ namespace Nop.Admin.Controllers
 
         #region Export / import
 
-        public virtual ActionResult ExportCsv()
+        public ActionResult ExportCsv()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();
@@ -577,7 +552,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult ImportCsv(FormCollection form)
+        public ActionResult ImportCsv(FormCollection form)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageCountries))
                 return AccessDeniedView();

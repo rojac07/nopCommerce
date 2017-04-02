@@ -12,7 +12,6 @@ namespace Nop.Admin.Models.Catalog
         public ProductReviewListModel()
         {
             AvailableStores = new List<SelectListItem>();
-            AvailableApprovedOptions = new List<SelectListItem>();
         }
 
         [NopResourceDisplayName("Admin.Catalog.ProductReviews.List.CreatedOnFrom")]
@@ -33,13 +32,6 @@ namespace Nop.Admin.Models.Catalog
         [NopResourceDisplayName("Admin.Catalog.ProductReviews.List.SearchProduct")]
         public int SearchProductId { get; set; }
 
-        [NopResourceDisplayName("Admin.Catalog.ProductReviews.List.SearchApproved")]
-        public int SearchApprovedId { get; set; }
-
-        //vendor
-        public bool IsLoggedInAsVendor { get; set; }
-
         public IList<SelectListItem> AvailableStores { get; set; }
-        public IList<SelectListItem> AvailableApprovedOptions { get; set; }
     }
 }

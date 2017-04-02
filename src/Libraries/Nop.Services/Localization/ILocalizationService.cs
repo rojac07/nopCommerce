@@ -95,7 +95,6 @@ namespace Nop.Services.Localization
         /// </summary>
         /// <param name="language">Language</param>
         /// <param name="xml">XML</param>
-        /// <param name="updateExistingResources">A value indicating whether to update existing resources</param>
-        void ImportResourcesFromXml(Language language, string xml, bool updateExistingResources = true);
+        void ImportResourcesFromXml(Language language, string xml);
     }
 }

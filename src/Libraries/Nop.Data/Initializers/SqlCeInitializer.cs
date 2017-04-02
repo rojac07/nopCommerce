@@ -32,9 +32,7 @@ namespace Nop.Data.Initializers
 
         private static string ReplaceDataDirectory(string inputString)
         {
-            string str = null;
-            if (inputString != null)
-                str = inputString.Trim();
+            string str = inputString.Trim();
             if (string.IsNullOrEmpty(inputString) || !inputString.StartsWith("|DataDirectory|", StringComparison.InvariantCultureIgnoreCase))
             {
                 return str;

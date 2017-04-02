@@ -11,17 +11,10 @@
 
 <div class="content">
     <div class="form-horizontal">
-        <div class="row">
-            <div class="col-md-12 clearfix">
-                <div class="pull-left">
-                    @Html.Action("Mode", "Setting", new { modeName = "topic-advanced-mode" })
-                </div>
-            </div>
-        </div>
         <div id="topic-edit" class="nav-tabs-custom">
             <ul class="nav nav-tabs">
                 @Html.RenderBootstrapTabHeader("tab-info", @T("Admin.ContentManagement.Topics.Info"), true)
-                @Html.RenderBootstrapTabHeader("tab-seo", @T("Admin.Common.SEO"), customCssClass: "advanced-setting")
+                @Html.RenderBootstrapTabHeader("tab-seo", @T("Admin.Common.SEO"))
             </ul>
             <div class="tab-content">
                 @Html.RenderBootstrapTabContent("tab-info", @TabInfo(), true)
@@ -108,7 +101,7 @@
                     </div>
                 </div>
     ))
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.SystemName)
                     </div>
@@ -128,7 +121,7 @@
                         </div>
                     </div>
                 }
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.Published)
                     </div>
@@ -137,7 +130,7 @@
                         @Html.ValidationMessageFor(model => model.Published)
                     </div>
                 </div>
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.IsPasswordProtected)
                     </div>
@@ -146,13 +139,22 @@
                         @Html.ValidationMessageFor(model => model.IsPasswordProtected)
                     </div>
                 </div>
-                <div class="form-group advanced-setting" id="pnlPasswordEnabled">
+                <div class="form-group" id="pnlPasswordEnabled">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.Password)
                     </div>
                     <div class="col-md-9">
                         @Html.NopEditorFor(model => model.Password)
                         @Html.ValidationMessageFor(model => model.Password)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.NopLabelFor(model => model.IncludeInSitemap)
+                    </div>
+                    <div class="col-md-9">
+                        @Html.NopEditorFor(x => x.IncludeInSitemap)
+                        @Html.ValidationMessageFor(model => model.IncludeInSitemap)
                     </div>
                 </div>
                 <div class="form-group">
@@ -191,16 +193,7 @@
                         @Html.ValidationMessageFor(model => model.IncludeInFooterColumn3)
                     </div>
                 </div>
-                <div class="form-group advanced-setting">
-                    <div class="col-md-3">
-                        @Html.NopLabelFor(model => model.IncludeInSitemap)
-                    </div>
-                    <div class="col-md-9">
-                        @Html.NopEditorFor(x => x.IncludeInSitemap)
-                        @Html.ValidationMessageFor(model => model.IncludeInSitemap)
-                    </div>
-                </div>
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.SelectedCustomerRoleIds)
                     </div>
@@ -235,7 +228,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.SelectedStoreIds)
                     </div>
@@ -270,7 +263,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.DisplayOrder)
                     </div>
@@ -279,7 +272,7 @@
                         @Html.ValidationMessageFor(model => model.DisplayOrder)
                     </div>
                 </div>
-                <div class="form-group advanced-setting">
+                <div class="form-group">
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.AccessibleWhenStoreClosed)
                     </div>
@@ -288,7 +281,7 @@
                         @Html.ValidationMessageFor(model => model.AccessibleWhenStoreClosed)
                     </div>
                 </div>
-                <div class="form-group advanced-setting" @(Model.AvailableTopicTemplates.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
+                <div class="form-group" @(Model.AvailableTopicTemplates.SelectionIsNotPossible() ? Html.Raw("style=\"display:none\"") : null)>
                     <div class="col-md-3">
                         @Html.NopLabelFor(model => model.TopicTemplateId)
                     </div>
@@ -345,18 +338,6 @@
                             @Html.ValidationMessageFor(model => model.Locales[item].SeName)
                         </div>
                     </div>
-                    <script type="text/javascript">
-                        $(document).ready(function () {
-                            $('#@Html.FieldIdFor(model => model.Locales[item].SeName)').on('input propertychange paste', function () {
-                                var parameters = {
-                                    entityId: '@Model.Id',
-                                    entityName: 'Topic',
-                                    seName: $(this).val()
-                                };
-                                warningValidation('@Url.Action("UrlReservedWarning", "Common")', '@Html.FieldNameFor(model => model.Locales[item].SeName)', parameters);
-                            });
-                        });
-                    </script>
                     @Html.HiddenFor(model => model.Locales[item].LanguageId)
                 </div>
     ,
@@ -397,18 +378,6 @@
                             @Html.ValidationMessageFor(model => model.SeName)
                         </div>
                     </div>
-                    <script type="text/javascript">
-                        $(document).ready(function () {
-                            $('#@Html.FieldIdFor(model => model.SeName)').on('input propertychange paste', function () {
-                                var parameters = {
-                                    entityId: '@Model.Id',
-                                    entityName: 'Topic',
-                                    seName: $(this).val()
-                                };
-                                warningValidation('@Url.Action("UrlReservedWarning", "Common")', '@Html.FieldNameFor(model => model.SeName)', parameters);
-                            });
-                        });
-                    </script>
                 </div>))
             </div>
         </div>

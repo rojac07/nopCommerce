@@ -11,13 +11,12 @@ using Nop.Core.Domain.Payments;
 using Nop.Core.Domain.Shipping;
 using Nop.Core.Domain.Tax;
 using Nop.Services.Catalog;
-using Nop.Services.Common;
-using Nop.Services.Customers;
+using Nop.Services.Configuration;
 using Nop.Services.Directory;
 using Nop.Services.ExportImport;
 using Nop.Services.Media;
 using Nop.Services.Messages;
-using Nop.Services.Shipping.Date;
+using Nop.Services.Shipping;
 using Nop.Services.Stores;
 using Nop.Services.Tax;
 using Nop.Services.Vendors;
@@ -31,7 +30,6 @@ namespace Nop.Services.Tests.ExportImport
     {
         private ICategoryService _categoryService;
         private IManufacturerService _manufacturerService;
-        private ICustomerService _customerService;
         private IProductAttributeService _productAttributeService;
         private IPictureService _pictureService;
         private INewsLetterSubscriptionService _newsLetterSubscriptionService;
@@ -41,13 +39,10 @@ namespace Nop.Services.Tests.ExportImport
         private IWorkContext _workContext;
         private IVendorService _vendorService;
         private IProductTemplateService _productTemplateService;
-        private IDateRangeService _dateRangeService;
+        private IShippingService _shippingService;
         private ITaxCategoryService _taxCategoryService;
         private IMeasureService _measureService;
         private CatalogSettings _catalogSettings;
-        private IGenericAttributeService _genericAttributeService;
-        private ICustomerAttributeFormatter _customerAttributeFormatter;
-        private OrderSettings _orderSettings;
 
         [SetUp]
         public new void SetUp()
@@ -55,7 +50,6 @@ namespace Nop.Services.Tests.ExportImport
             _storeService = MockRepository.GenerateMock<IStoreService>();
             _categoryService = MockRepository.GenerateMock<ICategoryService>();
             _manufacturerService = MockRepository.GenerateMock<IManufacturerService>();
-            _customerService = MockRepository.GenerateMock<ICustomerService>();
             _productAttributeService = MockRepository.GenerateMock<IProductAttributeService>();
             _pictureService = MockRepository.GenerateMock<IPictureService>();
             _newsLetterSubscriptionService = MockRepository.GenerateMock<INewsLetterSubscriptionService>();
@@ -63,22 +57,17 @@ namespace Nop.Services.Tests.ExportImport
             _workContext = MockRepository.GenerateMock<IWorkContext>();
             _vendorService = MockRepository.GenerateMock<IVendorService>();
             _productTemplateService = MockRepository.GenerateMock<IProductTemplateService>();
-            _dateRangeService = MockRepository.GenerateMock<IDateRangeService>();
+            _shippingService = MockRepository.GenerateMock<IShippingService>();
             _taxCategoryService = MockRepository.GenerateMock<ITaxCategoryService>();
             _measureService = MockRepository.GenerateMock<IMeasureService>();
             _catalogSettings=new CatalogSettings();
-            _genericAttributeService = MockRepository.GenerateMock<IGenericAttributeService>();
-            _customerAttributeFormatter = MockRepository.GenerateMock<ICustomerAttributeFormatter>();
-            _orderSettings = new OrderSettings();
-
 
             _exportManager = new ExportManager(_categoryService,
-                _manufacturerService, _customerService, _productAttributeService,
+                _manufacturerService, _productAttributeService, 
                 _pictureService, _newsLetterSubscriptionService,
-                _storeService, _workContext, _productEditorSettings,
-                _vendorService, _productTemplateService, _dateRangeService,
-                _taxCategoryService, _measureService, _catalogSettings,
-                _genericAttributeService, _customerAttributeFormatter, _orderSettings);
+                _storeService, _workContext, _productEditorSettings, 
+                _vendorService, _productTemplateService, _shippingService,
+                _taxCategoryService, _measureService, _catalogSettings);
         }
 
         //[Test]

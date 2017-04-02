@@ -38,11 +38,6 @@ namespace Nop.Core.Domain.Orders
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the last payment failed
-        /// </summary>
-        public bool LastPaymentFailed { get; set; }
-
-        /// <summary>
         /// Gets or sets a value indicating whether the entity has been deleted
         /// </summary>
         public bool Deleted { get; set; }

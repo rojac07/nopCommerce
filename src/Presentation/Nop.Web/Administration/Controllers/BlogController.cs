@@ -7,10 +7,8 @@ using Nop.Admin.Models.Blogs;
 using Nop.Core.Domain.Blogs;
 using Nop.Core.Domain.Customers;
 using Nop.Services.Blogs;
-using Nop.Services.Events;
 using Nop.Services.Helpers;
 using Nop.Services.Localization;
-using Nop.Services.Logging;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Stores;
@@ -28,40 +26,31 @@ namespace Nop.Admin.Controllers
         private readonly IBlogService _blogService;
         private readonly ILanguageService _languageService;
         private readonly IDateTimeHelper _dateTimeHelper;
-        private readonly IEventPublisher _eventPublisher;
         private readonly ILocalizationService _localizationService;
         private readonly IPermissionService _permissionService;
         private readonly IUrlRecordService _urlRecordService;
         private readonly IStoreService _storeService;
         private readonly IStoreMappingService _storeMappingService;
-        private readonly ICustomerActivityService _customerActivityService;
 
         #endregion
 
-        #region Ctor
+		#region Constructors
 
-        public BlogController(IBlogService blogService,
-            ILanguageService languageService,
-            IDateTimeHelper dateTimeHelper,
-            IEventPublisher eventPublisher,
-            ILocalizationService localizationService,
-            IPermissionService permissionService,
+        public BlogController(IBlogService blogService, ILanguageService languageService,
+            IDateTimeHelper dateTimeHelper, 
+            ILocalizationService localizationService, IPermissionService permissionService,
             IUrlRecordService urlRecordService,
-            IStoreService storeService,
-            IStoreMappingService storeMappingService,
-            ICustomerActivityService customerActivityService)
+            IStoreService storeService, IStoreMappingService storeMappingService)
         {
             this._blogService = blogService;
             this._languageService = languageService;
             this._dateTimeHelper = dateTimeHelper;
-            this._eventPublisher = eventPublisher;
             this._localizationService = localizationService;
             this._permissionService = permissionService;
             this._urlRecordService = urlRecordService;
             this._storeService = storeService;
             this._storeMappingService = storeMappingService;
-            this._customerActivityService = customerActivityService;
-        }
+		}
 
         #endregion
 
@@ -134,39 +123,36 @@ namespace Nop.Admin.Controllers
         
 		#region Blog posts
 
-        public virtual ActionResult Index()
+        public ActionResult Index()
         {
             return RedirectToAction("List");
         }
 
-		public virtual ActionResult List()
+		public ActionResult List()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
 
-            var model = new BlogPostListModel();
-
-            //stores
-            model.AvailableStores.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.Common.All"), Value = "0" });
-            foreach (var store in _storeService.GetAllStores())
-                model.AvailableStores.Add(new SelectListItem { Text = store.Name, Value = store.Id.ToString() });
-
-            return View(model);
+			return View();
 		}
 
 		[HttpPost]
-        public virtual ActionResult List(DataSourceRequest command, BlogPostListModel model)
+        public ActionResult List(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
-            var blogPosts = _blogService.GetAllBlogPosts(model.SearchStoreId, 0, null, null, command.Page - 1, command.PageSize, true);
+            var blogPosts = _blogService.GetAllBlogPosts(0, 0, null, null, command.Page - 1, command.PageSize, true);
             var gridModel = new DataSourceResult
             {
                 Data = blogPosts.Select(x =>
                 {
                     var m = x.ToModel();
-                    //little performance optimization: ensure that "Body" is not returned
+                    //little hack here:
+                    //ensure that descriptions are not returned
+                    //otherwise, we can get the following error if entities have too long descriptions:
+                    //"Error during serialization or deserialization using the JSON JavaScriptSerializer. The length of the string exceeds the value set on the maxJsonLength property. "
+                    //also it improves performance
                     m.Body = "";
                     if (x.StartDateUtc.HasValue)
                         m.StartDate = _dateTimeHelper.ConvertToUserTime(x.StartDateUtc.Value, DateTimeKind.Utc);
@@ -174,18 +160,18 @@ namespace Nop.Admin.Controllers
                         m.EndDate = _dateTimeHelper.ConvertToUserTime(x.EndDateUtc.Value, DateTimeKind.Utc);
                     m.CreatedOn = _dateTimeHelper.ConvertToUserTime(x.CreatedOnUtc, DateTimeKind.Utc);
                     m.LanguageName = x.Language.Name;
-                    m.ApprovedComments = _blogService.GetBlogCommentsCount(x, isApproved: true);
-                    m.NotApprovedComments = _blogService.GetBlogCommentsCount(x, isApproved: false);
-
+                    m.Comments = x.CommentCount;
                     return m;
                 }),
                 Total = blogPosts.TotalCount
             };
-
-            return Json(gridModel);
+			return new JsonResult
+			{
+				Data = gridModel
+			};
 		}
         
-        public virtual ActionResult Create()
+        public ActionResult Create()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -201,7 +187,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-        public virtual ActionResult Create(BlogPostModel model, bool continueEditing)
+        public ActionResult Create(BlogPostModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -213,10 +199,7 @@ namespace Nop.Admin.Controllers
                 blogPost.EndDateUtc = model.EndDate;
                 blogPost.CreatedOnUtc = DateTime.UtcNow;
                 _blogService.InsertBlogPost(blogPost);
-
-                //activity log
-                _customerActivityService.InsertActivity("AddNewBlogPost", _localizationService.GetResource("ActivityLog.AddNewBlogPost"), blogPost.Id);
-
+                
                 //search engine name
                 var seName = blogPost.ValidateSeName(model.SeName, model.Title, true);
                 _urlRecordService.SaveSlug(blogPost, seName, blogPost.LanguageId);
@@ -242,7 +225,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-		public virtual ActionResult Edit(int id)
+		public ActionResult Edit(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -263,7 +246,7 @@ namespace Nop.Admin.Controllers
 		}
 
         [HttpPost, ParameterBasedOnFormName("save-continue", "continueEditing")]
-		public virtual ActionResult Edit(BlogPostModel model, bool continueEditing)
+		public ActionResult Edit(BlogPostModel model, bool continueEditing)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -279,9 +262,6 @@ namespace Nop.Admin.Controllers
                 blogPost.StartDateUtc = model.StartDate;
                 blogPost.EndDateUtc = model.EndDate;
                 _blogService.UpdateBlogPost(blogPost);
-
-                //activity log
-                _customerActivityService.InsertActivity("EditBlogPost", _localizationService.GetResource("ActivityLog.EditBlogPost"), blogPost.Id);
 
                 //search engine name
                 var seName = blogPost.ValidateSeName(model.SeName, model.Title, true);
@@ -308,7 +288,7 @@ namespace Nop.Admin.Controllers
 		}
 
 		[HttpPost]
-		public virtual ActionResult Delete(int id)
+		public ActionResult Delete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -320,9 +300,6 @@ namespace Nop.Admin.Controllers
 
             _blogService.DeleteBlogPost(blogPost);
 
-            //activity log
-            _customerActivityService.InsertActivity("DeleteBlogPost", _localizationService.GetResource("ActivityLog.DeleteBlogPost"), blogPost.Id);
-
             SuccessNotification(_localizationService.GetResource("Admin.ContentManagement.Blog.BlogPosts.Deleted"));
 			return RedirectToAction("List");
 		}
@@ -331,44 +308,26 @@ namespace Nop.Admin.Controllers
 
         #region Comments
 
-        public virtual ActionResult Comments(int? filterByBlogPostId)
+        public ActionResult Comments(int? filterByBlogPostId)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
 
             ViewBag.FilterByBlogPostId = filterByBlogPostId;
-            var model = new BlogCommentListModel();
-
-            //"approved" property
-            //0 - all
-            //1 - approved only
-            //2 - disapproved only
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.ContentManagement.Blog.Comments.List.SearchApproved.All"), Value = "0" });
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.ContentManagement.Blog.Comments.List.SearchApproved.ApprovedOnly"), Value = "1" });
-            model.AvailableApprovedOptions.Add(new SelectListItem { Text = _localizationService.GetResource("Admin.ContentManagement.Blog.Comments.List.SearchApproved.DisapprovedOnly"), Value = "2" });
-
-            return View(model);
+            return View();
         }
 
         [HttpPost]
-        public virtual ActionResult Comments(int? filterByBlogPostId, DataSourceRequest command, BlogCommentListModel model)
+        public ActionResult Comments(int? filterByBlogPostId, DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
-            var createdOnFromValue = model.CreatedOnFrom == null ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnFrom.Value, _dateTimeHelper.CurrentTimeZone);
-
-            var createdOnToValue = model.CreatedOnTo == null ? null
-                            : (DateTime?)_dateTimeHelper.ConvertToUtcTime(model.CreatedOnTo.Value, _dateTimeHelper.CurrentTimeZone).AddDays(1);
-
-            bool? approved = null;
-            if (model.SearchApprovedId > 0)
-                approved = model.SearchApprovedId == 1;
-
-            var comments = _blogService.GetAllComments(0, 0, filterByBlogPostId, approved, createdOnFromValue, createdOnToValue, model.SearchText);
-
-            var storeNames = _storeService.GetAllStores().ToDictionary(store => store.Id, store => store.Name);
+            IList<BlogComment> comments = filterByBlogPostId.HasValue ?
+                //filter comments by blog
+                _blogService.GetBlogPostById(filterByBlogPostId.Value).BlogComments.OrderBy(bc => bc.CreatedOnUtc).ToList() :
+                //load all blog comments
+                _blogService.GetAllComments(0);
 
             var gridModel = new DataSourceResult
             {
@@ -383,10 +342,6 @@ namespace Nop.Admin.Controllers
                     commentModel.CustomerInfo = customer.IsRegistered() ? customer.Email : _localizationService.GetResource("Admin.Customers.Guest");
                     commentModel.CreatedOn = _dateTimeHelper.ConvertToUserTime(blogComment.CreatedOnUtc, DateTimeKind.Utc);
                     commentModel.Comment = Core.Html.HtmlHelper.FormatText(blogComment.CommentText, false, true, false, false, false, false);
-                    commentModel.IsApproved = blogComment.IsApproved;
-                    commentModel.StoreId = blogComment.StoreId;
-                    commentModel.StoreName = storeNames.ContainsKey(blogComment.StoreId) ? storeNames[blogComment.StoreId] : "Deleted";
-
                     return commentModel;
                 }),
                 Total = comments.Count,
@@ -394,32 +349,7 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
 
-        [HttpPost]
-        public virtual ActionResult CommentUpdate(BlogCommentModel model)
-        {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
-                return AccessDeniedView();
-
-            var comment = _blogService.GetBlogCommentById(model.Id);
-            if (comment == null)
-                throw new ArgumentException("No comment found with the specified id");
-
-            var previousIsApproved = comment.IsApproved;
-
-            comment.IsApproved = model.IsApproved;
-            _blogService.UpdateBlogPost(comment.BlogPost);
-
-            //raise event (only if it wasn't approved before and is approved now)
-            if (!previousIsApproved && comment.IsApproved)
-                _eventPublisher.Publish(new BlogCommentApprovedEvent(comment));
-
-            //activity log
-            _customerActivityService.InsertActivity("EditBlogComment", _localizationService.GetResource("ActivityLog.EditBlogComment"), model.Id);
-
-            return new NullJsonResult();
-        }
-
-        public virtual ActionResult CommentDelete(int id)
+        public ActionResult CommentDelete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -430,15 +360,15 @@ namespace Nop.Admin.Controllers
 
             var blogPost = comment.BlogPost;
             _blogService.DeleteBlogComment(comment);
-
-            //activity log
-            _customerActivityService.InsertActivity("DeleteBlogPostComment", _localizationService.GetResource("ActivityLog.DeleteBlogPostComment"), blogPost.Id);
+            //update totals
+            blogPost.CommentCount = blogPost.BlogComments.Count;
+            _blogService.UpdateBlogPost(blogPost);
 
             return new NullJsonResult();
         }
 
         [HttpPost]
-        public virtual ActionResult DeleteSelectedComments(ICollection<int> selectedIds)
+        public ActionResult DeleteSelectedComments(ICollection<int> selectedIds)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
                 return AccessDeniedView();
@@ -449,61 +379,11 @@ namespace Nop.Admin.Controllers
                 var blogPosts = _blogService.GetBlogPostsByIds(comments.Select(p => p.BlogPostId).Distinct().ToArray());
 
                 _blogService.DeleteBlogComments(comments);
-                //activity log
-                foreach (var blogComment in comments)
+                //update totals
+                foreach (var blogPost in blogPosts)
                 {
-                    _customerActivityService.InsertActivity("DeleteBlogPostComment", _localizationService.GetResource("ActivityLog.DeleteBlogPostComment"), blogComment.Id);
-                }
-            }
-
-            return Json(new { Result = true });
-        }
-
-        [HttpPost]
-        public virtual ActionResult ApproveSelected(ICollection<int> selectedIds)
-        {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
-                return AccessDeniedView();
-
-            if (selectedIds != null)
-            {
-                //filter not approved comments
-                var blogComments = _blogService.GetBlogCommentsByIds(selectedIds.ToArray()).Where(comment => !comment.IsApproved);
-
-                foreach (var blogComment in blogComments)
-                {
-                    blogComment.IsApproved = true;
-                    _blogService.UpdateBlogPost(blogComment.BlogPost);
-
-                    //raise event 
-                    _eventPublisher.Publish(new BlogCommentApprovedEvent(blogComment));
-
-                    //activity log
-                    _customerActivityService.InsertActivity("EditBlogComment", _localizationService.GetResource("ActivityLog.EditBlogComment"), blogComment.Id);
-                }
-            }
-
-            return Json(new { Result = true });
-        }
-
-        [HttpPost]
-        public virtual ActionResult DisapproveSelected(ICollection<int> selectedIds)
-        {
-            if (!_permissionService.Authorize(StandardPermissionProvider.ManageBlog))
-                return AccessDeniedView();
-
-            if (selectedIds != null)
-            {
-                //filter approved comments
-                var blogComments = _blogService.GetBlogCommentsByIds(selectedIds.ToArray()).Where(comment => comment.IsApproved);
-
-                foreach (var blogComment in blogComments)
-                {
-                    blogComment.IsApproved = false;
-                    _blogService.UpdateBlogPost(blogComment.BlogPost);
-
-                    //activity log
-                    _customerActivityService.InsertActivity("EditBlogComment", _localizationService.GetResource("ActivityLog.EditBlogComment"), blogComment.Id);
+                    blogPost.CommentCount = blogPost.BlogComments.Count;
+                    _blogService.UpdateBlogPost(blogPost);
                 }
             }
 

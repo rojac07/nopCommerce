@@ -23,15 +23,13 @@ namespace Nop.Admin.Controllers
         private readonly ISettingService _settingService;
         private readonly IPermissionService _permissionService;
 
-        #endregion
+	    #endregion
 
-        #region Ctor
+		#region Constructors
 
         public TaxController(ITaxService taxService,
-            ITaxCategoryService taxCategoryService,
-            TaxSettings taxSettings,
-            ISettingService settingService,
-            IPermissionService permissionService)
+            ITaxCategoryService taxCategoryService, TaxSettings taxSettings,
+            ISettingService settingService, IPermissionService permissionService)
 		{
             this._taxService = taxService;
             this._taxCategoryService = taxCategoryService;
@@ -44,7 +42,7 @@ namespace Nop.Admin.Controllers
 
         #region Tax Providers
 
-        public virtual ActionResult Providers()
+        public ActionResult Providers()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();
@@ -53,10 +51,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Providers(DataSourceRequest command)
+        public ActionResult Providers(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var taxProvidersModel = _taxService.LoadAllTaxProviders()
                 .Select(x => x.ToModel())
@@ -72,7 +70,7 @@ namespace Nop.Admin.Controllers
             return Json(gridModel);
         }
 
-        public virtual ActionResult ConfigureProvider(string systemName)
+        public ActionResult ConfigureProvider(string systemName)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();
@@ -92,7 +90,7 @@ namespace Nop.Admin.Controllers
             return View(model);
         }
 
-        public virtual ActionResult MarkAsPrimaryProvider(string systemName)
+        public ActionResult MarkAsPrimaryProvider(string systemName)
         {
             if (String.IsNullOrEmpty(systemName))
             {
@@ -116,7 +114,7 @@ namespace Nop.Admin.Controllers
 
         #region Tax Categories
 
-        public virtual ActionResult Categories()
+        public ActionResult Categories()
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();
@@ -125,10 +123,10 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult Categories(DataSourceRequest command)
+        public ActionResult Categories(DataSourceRequest command)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
-                return AccessDeniedKendoGridJson();
+                return AccessDeniedView();
 
             var categoriesModel = _taxCategoryService.GetAllTaxCategories()
                 .Select(x => x.ToModel())
@@ -143,7 +141,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CategoryUpdate(TaxCategoryModel model)
+        public ActionResult CategoryUpdate(TaxCategoryModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();
@@ -161,7 +159,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CategoryAdd([Bind(Exclude = "Id")] TaxCategoryModel model)
+        public ActionResult CategoryAdd([Bind(Exclude = "Id")] TaxCategoryModel model)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();
@@ -179,7 +177,7 @@ namespace Nop.Admin.Controllers
         }
 
         [HttpPost]
-        public virtual ActionResult CategoryDelete(int id)
+        public ActionResult CategoryDelete(int id)
         {
             if (!_permissionService.Authorize(StandardPermissionProvider.ManageTaxSettings))
                 return AccessDeniedView();

@@ -14,7 +14,7 @@ namespace Nop.Admin.Validators.Forums
             RuleFor(x => x.Name).NotEmpty().WithMessage(localizationService.GetResource("Admin.ContentManagement.Forums.Forum.Fields.Name.Required"));
             RuleFor(x => x.ForumGroupId).NotEmpty().WithMessage(localizationService.GetResource("Admin.ContentManagement.Forums.Forum.Fields.ForumGroupId.Required"));
 
-            SetDatabaseValidationRules<Forum>(dbContext);
+            SetStringPropertiesMaxLength<Forum>(dbContext);
         }
     }
 }
