@@ -14266,6 +14266,9 @@
   <LocaleResource Name="Footer.FollowUs.Facebook">
     <Value>Facebook</Value>
   </LocaleResource>
+  <LocaleResource Name="Footer.FollowUs.Instagram">
+    <Value>Instagram</Value>
+  </LocaleResource>
   <LocaleResource Name="Footer.FollowUs.GooglePlus">
     <Value>Google+</Value>
   </LocaleResource>

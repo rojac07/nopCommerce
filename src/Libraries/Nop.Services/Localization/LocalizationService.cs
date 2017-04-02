@@ -265,8 +265,7 @@ namespace Nop.Services.Localization
         /// <param name="defaultValue">Default value</param>
         /// <param name="returnEmptyIfNotFound">A value indicating whether an empty string will be returned if a resource is not found and default value is set to empty string</param>
         /// <returns>A string representing the requested resource string.</returns>
-        public virtual string GetResource(string resourceKey, int languageId,
-            bool logIfNotFound = true, string defaultValue = "", bool returnEmptyIfNotFound = false)
+        public virtual string GetResource(string resourceKey, int languageId, bool logIfNotFound = true, string defaultValue = "", bool returnEmptyIfNotFound = false)
         {
             string result = string.Empty;
             if (resourceKey == null)
